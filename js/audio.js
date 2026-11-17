@@ -2,6 +2,9 @@
   "use strict";
   let audio, noise, muted=false;
   const voices = new Set();
+  const builtIn = new Set(["momokage","momonosuke"]);
+  let introTimer=0;
+  let lastCallout=new WeakMap();
   function init() {
     if (muted) return;
     try {
@@ -23,7 +26,7 @@
   async function voice(data) {
     if (muted || !data) return false;
     const clip=new Audio(data);
-    clip.volume=.58;
+    clip.volume=data.startsWith("assets/")?.82:.66;
     const forget=()=>voices.delete(clip);
     clip.onended=forget;
     clip.onerror=forget;
@@ -57,21 +60,39 @@
     gain.gain.setValueAtTime(amp,t);gain.gain.exponentialRampToValueAtTime(.001,t+length);
     src.connect(filter).connect(gain).connect(audio.destination);src.start(t);src.stop(t+length);
   }
+  function characterVoice(f,tag) {
+    return f.data.voice[tag]?.data || (builtIn.has(f.data.id)?"assets/"+f.data.id+"-"+tag+".mp3":null);
+  }
+  function callout(f,tag) {
+    if(!f) return;
+    const slow=tag==="attack" || tag==="damage";
+    const now=performance.now();
+    if(slow && now-(lastCallout.get(f) ?? -Infinity)<960) return;
+    lastCallout.set(f,now);
+    voice(characterVoice(f,tag));
+  }
+  function intro([a,b]) {
+    if (muted) return;
+    callout(a,"start");
+    introTimer=setTimeout(()=>callout(b,"start"),characterVoice(a,"start")?1430:0);
+  }
   function event(e) {
     if (muted) return;
-    const play=(f,tag)=>f && voice(f.data.voice[tag]?.data);
+
     switch(e.type) {
-      case "fight": tone(415,622,.19,.13,"triangle"); play(e.a,"start"); play(e.b,"start"); break;
-      case "swing": thump(.11,e.key==="heavy"?.11:.064,1800); play(e.a,"attack"); break;
-      case "special": tone(220,659,.26,.14,"triangle"); tone(440,932,.18,.09,"sine",.08); play(e.a,"special"); break;
+      case "fight": tone(415,622,.19,.13,"triangle"); break;
+      case "swing": thump(.11,e.key==="heavy"?.11:.064,1800); callout(e.a,"attack"); break;
+      case "special": tone(220,659,.26,.14,"triangle"); tone(440,932,.18,.09,"sine",.08); callout(e.a,"special"); break;
       case "hit":
       case "break":
-      case "counter": thump(e.heavy?.2:.105,.35,2150);tone(e.heavy?137:174,48,e.heavy?.18:.09,.28,"triangle");play(e.b,"damage");break;
+      case "counter": thump(e.heavy?.2:.105,.35,2150);tone(e.heavy?137:174,48,e.heavy?.18:.09,.28,"triangle");callout(e.b,"damage");break;
       case "block": thump(.1,.19,870);tone(790,480,.1,.14,"triangle");break;
-      case "step": thump(.10,.080,1360); break;
+      case "step": thump(.10,.080,e.key==="back"?1340:880); break;
+      case "jump": tone(136,260,.10,.075,"triangle");break;
+      case "tired": tone(216,86,.33,.15,"triangle");break;
       case "evade": tone(410,811,.13,.085,"sine");break;
-      case "over": tone(233,392,.21,.12,"triangle");tone(349,523,.35,.13,"triangle",.12);play(e.a,"win");break;
+      case "over": tone(233,392,.21,.12,"triangle");tone(349,523,.35,.13,"triangle",.12);callout(e.a,"win");break;
     }
   }
-  D.Audio={init,mute,voice,event,stopVoices};
+  D.Audio={init,mute,voice,event,intro,stopVoices};
 })(Dojo);

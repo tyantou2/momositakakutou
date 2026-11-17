@@ -13,7 +13,7 @@
   };
   const icon = key => '<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">'+icons[key]+"</svg>";
   const modes = { cpu:"CPU対戦",local:"ローカル対戦",practice:"練習" };
-  const actionNames = { left:"左",right:"右",light:"弱",heavy:"強",guard:"ガード",dodge:"回避",special:"必殺" };
+  const actionNames = { left:"左",right:"右",jump:"ジャンプ",guard:"ガード",light:"弱",heavy:"強",back:"後ろ回避",spot:"その場回避",special:"必殺" };
   const looks = { hair:"髪型",eyes:"表情",outfit:"服", skin:"肌の色", hairColor:"髪の色", cloth:"服の色",glove:"グローブの色" };
   const colorNames = {skin:["ピーチ","サンド","ブロンズ","ブラウン","ローズ"],hairColor:["墨色","紫檀","栗色","金色","青緑","銀色"],cloth:["紅","藍","緑","紫","琥珀","炭色"],glove:["桃","水色","橙","若草","藤","生成り"]};
   const storageKey = "toukasonjuku.boxing.v1";
@@ -138,7 +138,7 @@
       const desc=node("span");desc.append(node("strong","",f.name),node("small","",f.short || "自作ファイター"));
       const tags=selected.flatMap((id,i)=>id===f.id?[sideLabel(i)]:[]);
       if (tags.length) desc.append(node("small","badge",tags.join(" / ")+" 選択中"));
-      card.append(canvas,desc);list.append(card);D.Art.portrait(canvas,f);
+      card.append(canvas,desc);list.append(card);D.Art.portrait(canvas,f,true);
     }
     const add=button("",openNew,"fighter-card add-card");
     const desc=node("span");desc.append(node("strong","","ファイターを作る"),node("small","","パーツ・能力・必殺技"));
@@ -200,10 +200,10 @@
       grid.append(field(label,group));
     }
     const sizes=node("div","segments");
-    for(let i=1;i<=5;i++) sizes.append(button(String(i),()=>{draft.height=i;picked(sizes,i-1);redraw();},""));
+    for(let i=1;i<=10;i++) sizes.append(button(String(i),()=>{draft.height=i;picked(sizes,i-1);redraw();},""));
     picked(sizes,draft.height-1);
-    grid.append(field("身長（1 小柄 ↔ 5 長身）",sizes));
-    body.append(grid,node("p","note","身長が1段高いと、攻撃が届く距離は4、相手の攻撃が当たる範囲は2.5広がります。"));
+    grid.append(field("身長（1 小柄 ↔ 10 長身）",sizes));
+    body.append(grid,node("p","note","もものすけは最小の1、桃陰は8。長身ほどパンチが少し遠くまで届き、相手の攻撃も受けやすくなります。"));
   }
   function ability(body) {
     const points=node("span","points");
@@ -258,7 +258,7 @@
     update();
   }
   function specials(body) {
-    body.append(node("h2","","装備する必殺技"),node("p","note","1種類を装備。試合中に攻撃を当てる・受ける・回避することでゲージが溜まり、100%で発動。"));
+    body.append(node("h2","","装備する必殺技"),node("p","note","1種類を装備。攻防と経過時間でゲージが溜まり、100%で発動。カットインの後に技が出ます。1試合で最大2回。"));
     const grid=node("div","special-grid");
     for (const key of D.specials) {
       const move=D.moves[key], b=button("",()=>{
@@ -343,13 +343,15 @@
   function help() {
     dialog("遊び方",content=>{
       content.append(node("p","note","弱パンチは出が速く、強パンチは遠くまで届きます。相手の溜めを見てガードか回避を選び、空振りの隙に反撃しましょう。"),makeKeys(0),makeKeys(1),
-        node("p","note","回避は方向を押しながらで前後にステップ。方向入力がなければ後ろに避けます。ガードは押し続けて構えます。守り続けるとスタミナが切れて崩されます。"),
-        node("p","note","必殺技はゲージ満タンで使用できます。60秒で決着がつかなければ、残り体力の割合で判定します。練習は時間制限なし。Escで一時停止できます。"));
+        node("p","note","後ろ回避は間合いを離し、その場回避は近距離を保ちます。ジャンプ中も弱・強パンチを出せます。スタミナ不足で技を出そうとしたときやガードが崩れたときは、約1.5秒間スタンします。"),
+        node("p","note","必殺技はゲージ満タンで発動し、1試合で最大2回。3分で決着がつかなければ、残り体力の割合で判定します。練習に時間・必殺回数の制限はありません。Escで一時停止できます。"));
+      const credits=node("p","note","ゲーム内ボイス　桃陰＝VOICEVOX:青山龍星 ／ もものすけ＝VOICEVOX:猫使ビィ");
+      credits.id="voice-credit";content.append(credits);
     });
   }
   function options() {
     dialog("設定",content=>{
-      for(const [key,label] of [["sound","サウンド"],["motion","画面揺れを表示"]]) {
+      for(const [key,label] of [["sound","サウンド"],["motion","画面揺れ・カットインの動き"]]) {
         const row=node("label","setting-row",label), checkbox=node("input");
         checkbox.type="checkbox";checkbox.checked=settings[key];
         checkbox.addEventListener("change",()=>{settings[key]=checkbox.checked;updateOptions();});
@@ -379,9 +381,9 @@
         bar.setAttribute("role","meter");bar.setAttribute("aria-label",sideLabel(i)+" "+label);bar.setAttribute("aria-valuemin","0");bar.setAttribute("aria-valuemax","100");
         bar.append(node("i"));group.append(bar);
       }
-      group.append(node("small","spell-label"));
+      group.append(node("small","spell-label"),node("div","fighter-state"));
     }
-    show("battle");hud();
+    show("battle");hud();D.Audio.intro(match.fighters);
     $("pause").focus({preventScroll:true});
   }
   function command(i) {
@@ -389,50 +391,78 @@
     queue[i]=null;
     return {axis:Number(keys.has(map.right))-Number(keys.has(map.left)),guard:keys.has(map.guard),action};
   }
+  function status(f) {
+    if(f.exhaustion) return ["exhausted","スタミナ切れ  "+(Math.ceil(f.exhaustion/6)/10).toFixed(1)+"秒"];
+    if(f.stun) return ["hurt","被弾硬直"];
+    if(f.dodge) return ["evade",f.dodgeType==="back"?"後ろ回避":"その場回避"];
+    if(f.guard) return ["guard","ガード"];
+    if(f.attack) {
+      const {key,move,age,wind,spent}=f.attack;
+      if(key==="counter" && !spent && age<=20)return ["guard","カウンター待機"];
+      if(age<wind)return ["charge",move.label+" · 溜め"];
+      if(age<=wind+(move.beats.at(-1) || 0)+4 || spent && age<32)return ["attack",move.label];
+      return ["recover","技の後隙"];
+    }
+    if(f.lift) return ["evade","空中"];
+    return ["",""];
+  }
   function hud() {
-    $("time").textContent=mode==="practice"?"∞":Math.ceil(match.seconds);
+    const seconds=Math.ceil(match.seconds);
+    $("time").textContent=mode==="practice"?"∞":Math.floor(seconds/60)+":"+String(seconds%60).padStart(2,"0");
+    $("fight-arena").classList.toggle("cinematic",!!match.cinematic);
     match.fighters.forEach((f,i)=>{
       const group=$("hud"+i);
       for(const [key,level] of [["hp",f.hp/f.p.hp*100],["sta",f.stamina/f.p.staminaMax*100],["super",f.meter]]) {
         const bar=group.querySelector("."+key);
         const pct=Math.max(0,Math.round(level*10)/10);
         bar.firstChild.style.width=pct+"%";bar.setAttribute("aria-valuenow",String(Math.round(pct)));
-        if(key==="super") bar.classList.toggle("ready",pct===100);
+        if(key==="super") bar.classList.toggle("ready",f.meter===100);
+        if(key==="sta") bar.classList.toggle("low",pct<24 || !!f.exhaustion);
       }
-      const suffix=f.meter===100?" READY":(" "+Math.floor(f.meter)+"%");
-      group.querySelector(".spell-label").textContent=D.moves[f.data.special].label+" ·"+suffix;
+      const suffix=mode!=="practice" && f.used>=D.RULES.superLimit ? "使用上限" : f.meter===100?"発動可能":Math.floor(f.meter)+"%";
+      group.querySelector(".spell-label").textContent=D.moves[f.data.special].label+" ・ "+suffix;
+      const [state,text]=match.phase==="fight"?status(f):["",""];
+      const label=group.querySelector(".fighter-state");
+      label.dataset.state=state;
+      label.textContent=text;
     });
     if(mode==="practice") {
       const t=match.fighters[0].tally;
       $("practice-report").textContent="命中 "+t.hit+"　ガード "+t.block+"　回避 "+t.evade+"　総ダメージ "+Math.round(t.dealt);
     }
-    $("banner").textContent=match.phase==="ready"?"READY": match.frame<48 && match.phase==="fight"?"FIGHT":"";
+    $("banner").textContent=match.cinematic?"":match.phase==="ready"?"READY":match.frame<46 && match.phase==="fight"?"FIGHT":"";
+    const caption=$("cut-in-caption");
+    const text=match.cinematic?match.cinematic.a.data.name+"の"+D.moves[match.cinematic.key].label:"";
+    if(caption.textContent!==text)caption.textContent=text;
   }
   function frame(now) {
     requestAnimationFrame(frame);
     const elapsed=Math.min(80,now-last);
     last=now;
-    if (screen!=="battle" || !match) return;
-    if (!paused && match.phase!=="over") {
+    if(screen!=="battle" || !match) return;
+    if(!paused && match.phase!=="over") {
       accumulator+=elapsed;
       while(accumulator>=1000/60 && match.phase!=="over") {
         match.tick(command(0),command(1));
-        for (const event of match.drain()) {
+        for(const event of match.drain()) {
           D.Audio.event(event);
           if(event.type==="over"){result();continue;}
-          if(!["fight","swing","step"].includes(event.type)) fx.push({...event,age:0});
+          if(!["fight","swing","step","jump","special"].includes(event.type)) fx.push({...event,age:0});
           if(event.heavy) shake=event.type==="block"?3:7;
         }
-        fx=fx.filter(e=>++e.age<36);
+        if(!match.cinematic) fx=fx.filter(e=>++e.age<36);
         shake*=.79;
         accumulator-=1000/60;
       }
       hud();
     }
-    context.clearRect(0,0,1280,650);context.save();
-    if(settings.motion && !paused && shake>.3) context.translate(Math.sin(now)*shake,Math.cos(now)*shake*.44);
+    context.clearRect(0,0,1280,650);
+    context.save();
+    if(settings.motion && !paused && shake>.3 && !match.cinematic) context.translate(Math.sin(now)*shake,Math.cos(now)*shake*.44);
+    D.Art.stage(context,542);
     for(const f of match.fighters) D.Art.fighter(context,f,match.frame,542);
     D.Art.effects(context,fx,542);
+    if(match.cinematic) D.Art.cinematic(context,match.cinematic,settings.motion);
     context.restore();
   }
   function overlay(label,title,detail,actions,statistics) {
@@ -482,7 +512,7 @@
     keys.add(e.code);
     if(e.repeat) return;
     const map=D.controls[index];
-    const press=["light","heavy","dodge","special"].find(key=>map[key]===e.code);
+    const press=["light","heavy","jump","back","spot","special"].find(key=>map[key]===e.code);
     if(press) queue[index]=press;
   });
   document.addEventListener("keyup",e=>keys.delete(e.code));

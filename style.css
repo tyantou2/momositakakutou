@@ -17,3 +17,14 @@ dialog{max-width:min(550px,94vw);background:#241a30;color:var(--ink);border:1px 
 @media(max-width:740px){.top-inner,.frame{padding-left:13px;padding-right:13px}nav{gap:2px}.tab{padding:0 6px;font-size:11px}.brand strong{font-size:14px}.brand small{font-size:8px}.crest{width:28px;height:28px;font-size:20px}.top-actions{gap:4px}.icon-btn{width:32px;height:32px}.top-inner{gap:8px;min-height:54px}.frame{padding-top:18px}.preview{height:300px}.preview-fighter{height:77%;bottom:13%}.nameplate{min-width:0;bottom:10px;padding:6px 8px}.nameplate strong{font-size:16px}.mode-section,.workshop{grid-template-columns:1fr}.start{height:48px}.mode{align-items:flex-start;padding:8px;gap:6px}.mode i{width:16px;height:16px}.mode strong{font-size:11px}.title-row .new-fighter{padding:5px 8px;font-size:11px}.editor-body{padding:14px}.studio-art{height:204px}.hud{inset:6px 8px auto;gap:6px}.clock{min-width:42px;padding:3px 4px}.bar{height:8px}.bar.sta,.bar.super{height:5px}.battle-overlay{place-items:start center}.result{padding:10px}.result h2{font-size:18px}.result p{font-size:11px}.result .button{min-height:27px;padding:2px 6px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;scroll-behavior:auto!important}}
 @media(max-height:840px) and (min-width:741px){.frame{padding-top:22px}.title-row{margin-bottom:16px}.preview{height:clamp(279px,41vh,369px)}.mode-section,.roster-section{margin-top:15px}}
+.visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.fight-arena.cinematic .hud{opacity:.17}
+.hud .bar.sta.low i{background:#fa885f}
+.fighter-state{display:inline-flex;margin-top:8px;border-radius:4px;padding:4px 8px;background:#201526db;border:1px solid #d9b2da6a;color:#f6ddef;font-size:11px;font-weight:900;letter-spacing:.045em}
+.fighter-state:empty{display:none}
+.fighter-state[data-state=exhausted]{background:#52212dde;color:#ffdb9e;border-color:#f2a477}
+.fighter-state[data-state=charge],.fighter-state[data-state=attack]{color:#ffe1a5;border-color:#f2b783}
+.fighter-state[data-state=guard],.fighter-state[data-state=evade]{color:#afe8f5;border-color:#8bd8ed98}
+.clock{min-width:85px}
+.clock time{font-variant-numeric:tabular-nums}
+#voice-credit{font-size:11px;color:var(--muted);line-height:1.65;margin-top:10px}

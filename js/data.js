@@ -18,12 +18,12 @@
     tank: { name: "タフ", speed: 2, power: 6, bonus: { stamina: 4, dodge: 1, guard: 5 } }
   };
   const moves = {
-    light: { label: "弱パンチ", wind: 9, beats: [0], end: 15, cost: 9, reach: 66, damage: 7, stun: 13, push: 58, stop: 3, step: 86 },
-    heavy: { label: "強パンチ", wind: 20, beats: [0], end: 26, cost: 19, reach: 88, damage: 15, stun: 23, push: 248, stop: 6, step: 102 },
-    rush: { label: "百花ラッシュ", type: "ラッシュ", icon: "≋", wind: 13, beats: [0,8,16,24], end: 25, reach: 83, damage: 6, stun: 14, push: 45, stop: 3, step: 98, color: "#ff97b5", detail: "近距離で４連打。距離が離れると途中で途切れる。" },
-    crush: { label: "白桃砕き", type: "ヘビー", icon: "✦", wind: 29, beats: [0], end: 34, reach: 103, damage: 30, stun: 31, push: 435, stop: 9, step: 117, guardScale: 1.75, color: "#ffbd7d", detail: "大きく溜める一撃。ガードを大きく削るが、外すと隙が長い。" },
-    counter: { label: "返しの一閃", type: "カウンター", icon: "⤺", wind: 1, beats: [], end: 42, reach: 121, damage: 24, stun: 27, push: 352, stop: 8, step: 0, color: "#cbafff", detail: "構えてから約0.32秒間、相手の打撃に自動で反撃。読まれると隙が残る。" },
-    comet: { label: "飛桃ストレート", type: "接近攻撃", icon: "➜", wind: 19, beats: [0], end: 30, reach: 86, damage: 23, stun: 26, push: 331, stop: 7, step: 495, color: "#8de9f4", detail: "最大約157の距離を一気に詰める一発。接近中に打たれると中断する。" }
+    light: { label: "弱パンチ", wind: 10, beats: [0], end: 17, cost: 10, reach: 96, damage: 7, stun: 12, push: 78, stop: 3, step: 116 },
+    heavy: { label: "強パンチ", wind: 24, beats: [0], end: 33, cost: 24, reach: 133, damage: 16, stun: 26, push: 310, stop: 8, step: 132 },
+    rush: { label: "百花ラッシュ", type: "ラッシュ", icon: "≋", wind: 13, beats: [0,8,16,24], end: 25, reach: 125, damage: 9, stun: 14, push: 45, stop: 3, step: 98, color: "#ff97b5", detail: "近距離で４連打。距離が離れると途中で途切れる。" },
+    crush: { label: "白桃砕き", type: "ヘビー", icon: "✦", wind: 29, beats: [0], end: 34, reach: 154, damage: 43, stun: 31, push: 435, stop: 9, step: 117, guardScale: 1.75, color: "#ffbd7d", detail: "大きく溜める一撃。ガードを大きく削るが、外すと隙が長い。" },
+    counter: { label: "返しの一閃", type: "カウンター", icon: "⤺", wind: 1, beats: [], end: 42, reach: 164, damage: 37, stun: 27, push: 352, stop: 8, step: 0, color: "#cbafff", detail: "構えてから約0.33秒間、相手の打撃に自動で反撃。読まれると隙が残る。" },
+    comet: { label: "飛桃ストレート", type: "接近攻撃", icon: "➜", wind: 19, beats: [0], end: 30, reach: 128, damage: 34, stun: 26, push: 331, stop: 7, step: 495, color: "#8de9f4", detail: "最大約157の距離を一気に詰める一発。接近中に打たれると中断する。" }
   };
   const specials = ["rush", "crush", "counter", "comet"];
   const voiceSlots = { start: "試合開始", attack: "攻撃", special: "必殺技", damage: "被弾", win: "勝利" };
@@ -52,6 +52,8 @@
         voice[tag] = { name: file.name.slice(0,80), data: file.data };
       }
     }
+    const oldHeight = typeof record.id === "string" && record.id.startsWith("custom-") && record.heightScale !== 10;
+    const height = oldHeight ? bounded(record.height, 3, 1, 5) + 3 : bounded(record.height, 6, 1, 10);
     const look = {};
     for (const [key, choices] of Object.entries({ ...looks, ...colors })) {
       look[key] = bounded(record.look?.[key], 0, 0, choices.length - 1);
@@ -59,7 +61,7 @@
     return {
       id: typeof record.id === "string" ? record.id.slice(0,70) : "",
       name: String(record.name || "").trim().slice(0,16) || "新しいファイター",
-      height: bounded(record.height, 3, 1, 5),
+      height, heightScale: 10,
       speed: bounded(record.speed, 5, 1, 10), power: bounded(record.power, 5, 1, 10),
       bonus: bonus(record.bonus), look, special: specials.includes(record.special) ? record.special : "rush", voice
     };
@@ -68,9 +70,9 @@
     return { ...normalize(data), ...style };
   }
   const cast = [
-    rosterEntry({ id:"momokage",name:"桃陰",height:4,speed:4,power:7,bonus:presets.power.bonus,special:"crush" },
+    rosterEntry({ id:"momokage",name:"桃陰",height:8,speed:4,power:7,bonus:presets.power.bonus,special:"crush" },
       { image:"assets/momokage.png", epithet:"白桃一族の熱血先生", short:"熱血先生", accent:"#92afff", arm:"#293253", sprite:{ crop:[82,66,826,1297], align:.52, glove:[.87,.61], shoulder:[.78,.69] } }),
-    rosterEntry({ id:"momonosuke",name:"もものすけ",height:2,speed:7,power:4,bonus:presets.speed.bonus,special:"rush" },
+    rosterEntry({ id:"momonosuke",name:"もものすけ",height:1,speed:8,power:5,bonus:{stamina:5,dodge:4,guard:1},special:"rush" },
       { image:"assets/momonosuke.png", epithet:"好奇心いっぱいの桃の妖精", short:"桃の妖精", accent:"#ffa4be", arm:"#f6dce6", sprite:{ crop:[150,40,939,1087], align:.55, glove:[.82,.58], shoulder:[.76,.66] } })
   ];
   function profile(fighter) {
@@ -78,21 +80,23 @@
     const toughness = 11 - speed;
     const tempo = 11 - power;
     const { stamina, dodge, guard } = Object.fromEntries(Object.entries(fighter.bonus).map(([k,v])=>[k,5+v]));
-    const size = height - 3;
+    const size = height - 6;
+    const visual = .59 + .08 * (height - 1);
     return {
       speed, power, toughness, tempo, stamina, dodge, guard,
-      walk: 164 + 11 * speed, hp: 90 + 2.6 * toughness, damage: .85 + .027 * power,
+      walk: 174 + 11 * speed, hp: 475 + 6 * toughness, damage: .85 + .027 * power,
       wind: 1.15 - .029 * tempo, staminaMax: 76 + 4 * stamina, regen: 13 + 1.45 * stamina,
       inv: 10 + dodge, dodgeSpeed: 310 + 13 * dodge,
       guardCost: 1.12 - .056 * guard, chip: .19 - .014 * guard,
-      visual: 1 + .055 * size, hurt: 41 + 2.5 * size, reach: 4 * size
+      visual, bodyHeight: 220 * visual, hurt: 43 + 1.2 * size, reach: 2.5 * size
     };
   }
   const controls = [
-    { left:"KeyA", right:"KeyD", light:"KeyF", heavy:"KeyG", guard:"KeyS", dodge:"KeyW", special:"KeyH" },
-    { left:"ArrowLeft", right:"ArrowRight", light:"KeyJ", heavy:"KeyK", guard:"ArrowDown", dodge:"ArrowUp", special:"KeyL" }
+    { left:"ArrowLeft", right:"ArrowRight", jump:"ArrowUp", guard:"ArrowDown", light:"KeyJ", heavy:"KeyK", back:"KeyI", spot:"KeyO", special:"KeyL" },
+    { left:"KeyA", right:"KeyD", jump:"KeyW", guard:"KeyS", light:"KeyF", heavy:"KeyG", back:"KeyQ", spot:"KeyE", special:"KeyH" }
   ];
-  const keyLabels = { KeyA:"A", KeyD:"D", KeyF:"F", KeyG:"G", KeyS:"S", KeyW:"W", KeyH:"H", ArrowLeft:"←", ArrowRight:"→", KeyJ:"J", KeyK:"K", ArrowDown:"↓", ArrowUp:"↑", KeyL:"L" };
+  const keyLabels = { ArrowLeft:"←",ArrowRight:"→",ArrowUp:"↑",ArrowDown:"↓",KeyJ:"J",KeyK:"K",KeyI:"I",KeyO:"O",KeyL:"L",
+    KeyA:"A",KeyD:"D",KeyW:"W",KeyS:"S",KeyF:"F",KeyG:"G",KeyQ:"Q",KeyE:"E",KeyH:"H" };
   const api = { clamp, stats, presets, moves, specials, voiceSlots, colors, looks, bonus, normalize, cast, profile, controls, keyLabels };
   root.Dojo = api;
   if (typeof module === "object") module.exports = api;
