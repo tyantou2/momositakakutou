@@ -344,6 +344,7 @@
     dialog("遊び方",content=>{
       content.append(node("p","note","弱パンチは出が速く、強パンチは遠くまで届きます。相手の溜めを見てガードか回避を選び、空振りの隙に反撃しましょう。"),makeKeys(0),makeKeys(1),
         node("p","note","後ろ回避は間合いを離し、その場回避は近距離を保ちます。ジャンプ中も弱・強パンチを出せます。スタミナ不足で技を出そうとしたときやガードが崩れたときは、約1.5秒間スタンします。"),
+        node("p","note","攻撃が当たる直前の約0.05秒以内に回避を入力するとジャスト回避。相手の攻撃が中断され、約0.67秒の反撃の隙が生まれます。成功後2秒間は通常の回避になります。"),
         node("p","note","必殺技はゲージ満タンで発動し、1試合で最大2回。3分で決着がつかなければ、残り体力の割合で判定します。練習に時間・必殺回数の制限はありません。Escで一時停止できます。"));
       const credits=node("p","note","ゲーム内ボイス　桃陰＝VOICEVOX:青山龍星 ／ もものすけ＝VOICEVOX:猫使ビィ");
       credits.id="voice-credit";content.append(credits);
@@ -393,7 +394,9 @@
   }
   function status(f) {
     if(f.exhaustion) return ["exhausted","スタミナ切れ  "+(Math.ceil(f.exhaustion/6)/10).toFixed(1)+"秒"];
+    if(f.opening) return ["opening","隙あり"];
     if(f.stun) return ["hurt","被弾硬直"];
+    if(f.perfectFlash && !f.attack) return ["perfect","ジャスト回避"];
     if(f.dodge) return ["evade",f.dodgeType==="back"?"後ろ回避":"その場回避"];
     if(f.guard) return ["guard","ガード"];
     if(f.attack) {
@@ -428,7 +431,7 @@
     });
     if(mode==="practice") {
       const t=match.fighters[0].tally;
-      $("practice-report").textContent="命中 "+t.hit+"　ガード "+t.block+"　回避 "+t.evade+"　総ダメージ "+Math.round(t.dealt);
+      $("practice-report").textContent="命中 "+t.hit+"　ガード "+t.block+"　回避 "+t.evade+"　ジャスト "+t.perfect+"　総ダメージ "+Math.round(t.dealt);
     }
     $("banner").textContent=match.cinematic?"":match.phase==="ready"?"READY":match.frame<46 && match.phase==="fight"?"FIGHT":"";
     const caption=$("cut-in-caption");

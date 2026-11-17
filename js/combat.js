@@ -4,7 +4,8 @@
   const LIMIT = { left:154, right:1126, spawn:[410,870], round:180, ready:108, dt:1/60 };
   const RULES = {
     exhaustion:90, jump:665, gravity:1440, superLimit:2, cutIn:66, openingCharge:24,
-    chargePerSecond:.40, hitCharge:3.2, receivedCharge:2, guardCharge:2.6, evadeCharge:4.5
+    chargePerSecond:.40, hitCharge:3.2, receivedCharge:2, guardCharge:2.6, evadeCharge:4.5,
+    perfectWindow:3, perfectCooldown:120, punishWindow:40, perfectRecovery:5, perfectStop:5
   };
   const passive = () => ({ axis:0, guard:false });
   const gap = (a,b) => Math.abs(a.x-b.x);
@@ -14,7 +15,8 @@
     return {
       data,p,index,x:LIMIT.spawn[index],lift:0,vy:0,hp:p.hp,stamina:p.staminaMax,meter:RULES.openingCharge,used:0,
       face:index?-1:1,guard:false,attack:null,stun:0,exhaustion:0,dodge:0,dodgeType:null,
-      knock:0,recovery:0,buffer:null,moving:0,tally:{hit:0,block:0,evade:0,dealt:0}
+      dodgeInputFrame:-Infinity,dodgeInvThreshold:0,perfectLock:0,opening:0,perfectFlash:0,
+      knock:0,recovery:0,buffer:null,moving:0,tally:{hit:0,block:0,evade:0,perfect:0,dealt:0}
     };
   }
   class Match {
@@ -94,7 +96,7 @@
       this.emit("special",a,null,{key});
     }
     capture(f,cmd) {
-      if (cmd.action && !f.exhaustion) f.buffer={action:cmd.action,frames:9};
+      if (cmd.action && !f.exhaustion) f.buffer={action:cmd.action,frames:9,inputFrame:this.frame};
     }
     grant(f,amount) {
       if (this.mode==="practice" || f.used<RULES.superLimit) f.meter=Math.min(100,f.meter+amount*(f.used===0?1:.38));
@@ -113,6 +115,9 @@
       const {p}=f;
       let shot=null;
       f.stun=Math.max(0,f.stun-1);
+      f.perfectLock=Math.max(0,f.perfectLock-1);
+      f.opening=Math.max(0,f.opening-1);
+      f.perfectFlash=Math.max(0,f.perfectFlash-1);
       f.recovery=Math.max(0,f.recovery-1);
       if(f.exhaustion>0 && --f.exhaustion===0) f.stamina=Math.max(f.stamina,p.staminaMax*.34);
       this.grant(f,RULES.chargePerSecond*LIMIT.dt);
@@ -125,7 +130,7 @@
         if (action) {
           const grounded=f.lift===0;
           if (grounded || action==="light" || action==="heavy") {
-            shot=this.begin(f,action);
+            shot=this.begin(f,action,f.buffer.inputFrame);
             f.buffer=null;
           }
         }
@@ -156,7 +161,7 @@
       }
       return shot;
     }
-    begin(f,action) {
+    begin(f,action,inputFrame) {
       const special=action==="special";
       if (special && this.mode!=="practice" && f.used>=RULES.superLimit) {
         this.emit("spent",f);
@@ -184,7 +189,9 @@
       f.recovery=22;
       if (dodge) {
         f.dodgeType=action;
-        f.dodge=f.p.inv+(action==="back"?15:11);
+        f.dodgeInputFrame=inputFrame;
+        f.dodgeInvThreshold=action==="back"?15:11;
+        f.dodge=f.p.inv+f.dodgeInvThreshold;
         this.emit("step",f,null,{key:action});
         return null;
       }
@@ -220,8 +227,10 @@
       if(distance>reach(a,b,move) || y < -24 || y > b.p.bodyHeight*.81+23) {
         return {kind:"miss",a,b,move,point:a.x+a.face*(move.reach+a.p.reach),lift:a.lift};
       }
-      const inv=f=>f.dodge>(f.dodgeType==="back"?15:11)-1;
-      if (inv(b)) return {kind:"evade",a,b,move,point:b.x,lift:b.lift};
+      if (b.dodge>=b.dodgeInvThreshold && b.dodge>0) {
+        const perfect=b.perfectLock===0 && this.frame-b.dodgeInputFrame<RULES.perfectWindow;
+        return {kind:perfect?"perfect":"evade",a,b,move,point:b.x,lift:b.lift};
+      }
       if (b.attack?.key==="counter" && b.attack.age<=20 && !b.attack.spent && distance<=reach(b,a,D.moves.counter)) {
         return {kind:"counter",a:b,b:a,move:D.moves.counter,point:a.x,lift:a.lift};
       }
@@ -232,9 +241,21 @@
         this.emit("miss",a,b,{point,lift});
         return;
       }
-      if (kind==="evade") {
+      if (kind==="evade" || kind==="perfect") {
         b.tally.evade++;
         this.grant(b,RULES.evadeCharge);
+        if (kind==="perfect") {
+          b.tally.perfect++;
+          b.perfectLock=RULES.perfectCooldown;
+          b.perfectFlash=26;
+          b.dodge=RULES.perfectRecovery;
+          // End the current move, including any remaining hits of a rush.
+          a.attack=null;
+          a.buffer=null;
+          a.opening=RULES.punishWindow;
+          a.stun=Math.max(a.stun,a.opening);
+          this.freeze=Math.max(this.freeze,RULES.perfectStop);
+        }
         this.emit(kind,b,a,{point,lift});
         return;
       }

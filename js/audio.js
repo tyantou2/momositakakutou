@@ -91,6 +91,7 @@
       case "jump": tone(136,260,.10,.075,"triangle");break;
       case "tired": tone(216,86,.33,.15,"triangle");break;
       case "evade": tone(410,811,.13,.085,"sine");break;
+      case "perfect": tone(410,822,.19,.12,"triangle");tone(690,1160,.19,.10,"sine",.075);break;
       case "over": tone(233,392,.21,.12,"triangle");tone(349,523,.35,.13,"triangle",.12);callout(e.a,"win");break;
     }
   }

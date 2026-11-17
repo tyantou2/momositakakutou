@@ -252,8 +252,8 @@
     c.restore();
   }
   function effects(c,fx,y) {
-    const colors={ hit:"#ffe6ae",block:"#9ce1ff",break:"#ff896e",evade:"#80ead7",counter:"#e6acff",miss:"#e9d2ee",special:"#ffd7f3",tired:"#ffad88",spent:"#eed0e3" };
-    const labels={hit:"HIT",block:"GUARD",break:"ガード崩し",evade:"DODGE",counter:"COUNTER",miss:"空振り",step:"",special:"",meter:"ゲージ不足",tired:"スタミナ切れ",spent:"使用上限"};
+    const colors={ hit:"#ffe6ae",block:"#9ce1ff",break:"#ff896e",evade:"#80ead7",perfect:"#ffe393",counter:"#e6acff",miss:"#e9d2ee",special:"#ffd7f3",tired:"#ffad88",spent:"#eed0e3" };
+    const labels={hit:"HIT",block:"GUARD",break:"ガード崩し",evade:"DODGE",perfect:"ジャスト回避",counter:"COUNTER",miss:"空振り",step:"",special:"",meter:"ゲージ不足",tired:"スタミナ切れ",spent:"使用上限"};
     for (const e of fx) {
       const age=e.age/36;
       const color=colors[e.type]||"#f4cfeb";
@@ -261,7 +261,7 @@
       const height=y-(e.lift || 0)-Math.min(126,(e.b || e.a).p.bodyHeight*.53);
       c.save();
       c.globalAlpha=Math.min(1,(1-age)*1.7);
-      const impact=["hit","block","break","counter"].includes(e.type);
+      const impact=["hit","block","break","counter","perfect"].includes(e.type);
       if (impact && age<.61) {
         c.translate(x,height);
         for(let i=0;i<9;i++) {

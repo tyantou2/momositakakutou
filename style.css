@@ -25,6 +25,8 @@ dialog{max-width:min(550px,94vw);background:#241a30;color:var(--ink);border:1px 
 .fighter-state[data-state=exhausted]{background:#52212dde;color:#ffdb9e;border-color:#f2a477}
 .fighter-state[data-state=charge],.fighter-state[data-state=attack]{color:#ffe1a5;border-color:#f2b783}
 .fighter-state[data-state=guard],.fighter-state[data-state=evade]{color:#afe8f5;border-color:#8bd8ed98}
+.fighter-state[data-state=perfect]{color:#fff0a8;border-color:#f5ca7c;background:#51363bea}
+.fighter-state[data-state=opening]{color:#ffd1ab;border-color:#f7a178;background:#5b252fea}
 .clock{min-width:85px}
 .clock time{font-variant-numeric:tabular-nums}
 #voice-credit{font-size:11px;color:var(--muted);line-height:1.65;margin-top:10px}
