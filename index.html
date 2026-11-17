@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>桃下拳闘 — 桃下村塾</title>
+  <link rel="preload" href="assets/dojo.png" as="image">
+  <link rel="stylesheet" href="style.css">
+  <script defer src="js/data.js"></script>
+  <script defer src="js/combat.js"></script>
+  <script defer src="js/art.js"></script>
+  <script defer src="js/audio.js"></script>
+  <script defer src="js/app.js"></script>
+</head>
+<body>
+  <header class="top">
+    <div class="top-inner">
+      <button id="brand" class="brand" aria-label="桃下拳闘のトップへ">
+        <span class="crest" aria-hidden="true">✿</span>
+        <span><strong>桃下拳闘</strong><small>桃下村塾</small></span>
+      </button>
+      <nav aria-label="メニュー">
+        <button class="tab active" id="tab-match" aria-current="page">対戦</button>
+        <button class="tab" id="tab-editor">キャラクター作成</button>
+        <button class="tab" id="help">遊び方</button>
+      </nav>
+      <div class="top-actions">
+        <button id="sound" class="icon-btn" title="サウンド切替" aria-label="サウンドをオフ" aria-pressed="false"></button>
+        <button id="settings" class="icon-btn" title="設定" aria-label="設定"></button>
+      </div>
+    </div>
+  </header>
+  <main class="frame">
+    <section id="lobby" aria-labelledby="lobby-title">
+      <div class="title-row">
+        <div>
+          <div class="eyebrow"><span></span> MATCH SETUP</div>
+          <h1 id="lobby-title">対戦<span>準備</span></h1>
+          <p>ファイターと対戦モードを選ぼう。</p>
+        </div>
+        <button class="button secondary new-fighter"><b aria-hidden="true">＋</b> ファイターを作る</button>
+      </div>
+      <div class="arena preview" aria-label="対戦キャラクターのプレビュー">
+        <div class="arena-stage"><span>✿</span> 桃下道場 <i></i> 夕映えの間</div>
+        <canvas class="preview-fighter" id="preview0" width="366" height="350" aria-hidden="true"></canvas>
+        <canvas class="preview-fighter" id="preview1" width="366" height="350" aria-hidden="true"></canvas>
+        <div class="versus" aria-hidden="true"><span>VS</span></div>
+        <button class="nameplate player0" id="side0" type="button">
+          <span class="chip">1P</span><span><strong id="name0"></strong><small id="type0"></small></span>
+        </button>
+        <button class="nameplate player1" id="side1" type="button">
+          <span class="chip" id="opponent-chip">CPU</span><span><strong id="name1"></strong><small id="type1"></small></span>
+        </button>
+      </div>
+      <section class="mode-section" aria-label="対戦モード">
+        <div class="mode-main">
+          <div class="section-heading"><h2>対戦モード</h2><span id="mode-option"></span></div>
+          <div class="modes" id="modes">
+            <button class="mode selected" data-mode="cpu" aria-pressed="true"><i data-icon="cpu"></i><span><strong>CPU対戦</strong><small>コンピューターと対戦</small></span></button>
+            <button class="mode" data-mode="local" aria-pressed="false"><i data-icon="local"></i><span><strong>ローカル対戦</strong><small>同じPCで二人対戦</small></span></button>
+            <button class="mode" data-mode="practice" aria-pressed="false"><i data-icon="practice"></i><span><strong>練習</strong><small>技と間合いを試す</small></span></button>
+          </div>
+        </div>
+        <button id="start" class="button primary start"><span><i data-icon="fight"></i> <strong id="start-label">試合開始</strong></span><b aria-hidden="true">→</b></button>
+      </section>
+      <section class="roster-section" aria-labelledby="roster-title">
+        <div class="section-heading"><h2 id="roster-title">ファイター選択</h2><div class="toggle" id="slot-toggle" aria-label="選択する側"><button data-side="0" aria-pressed="true">1P</button><button data-side="1" aria-pressed="false">CPU</button></div></div>
+        <div class="roster" id="roster"></div>
+      </section>
+    </section>
+    <section id="editor" hidden aria-labelledby="editor-title">
+      <div class="title-row editor-title">
+        <div><div class="eyebrow"><span></span> FIGHTER STUDIO</div><h1 id="editor-title">キャラクター<span>作成</span></h1><p>パーツと能力を組み合わせ、自分の戦い方を作ろう。</p></div>
+        <button class="button secondary" id="back-editor">← 対戦準備へ</button>
+      </div>
+      <div class="workshop">
+        <aside class="studio">
+          <div class="studio-art"><canvas id="editor-preview" width="380" height="392" role="img" aria-label="作成中のキャラクターの全身"></canvas></div>
+          <label class="fighter-name" for="fighter-name">ファイター名</label>
+          <input id="fighter-name" type="text" maxlength="16" autocomplete="off">
+          <div class="studio-actions">
+            <button class="button primary" id="save">保存して 1P に選ぶ</button>
+            <p id="save-message" role="status"></p>
+          </div>
+          <div class="saved-controls">
+            <label for="saved">保存済みファイター</label><select id="saved"></select>
+            <div><button class="button secondary" id="load">読み込み</button><button class="button secondary new-fighter">新規</button></div>
+          </div>
+          <small class="storage-note">データはこのブラウザに保存されます。ブラウザのサイトデータを消去すると、キャラクターとボイスも消えます。</small>
+        </aside>
+        <div class="editor-panel">
+          <div class="editor-tabs" aria-label="編集項目">
+            <button data-editor="appearance" aria-pressed="true">外見</button><button data-editor="ability" aria-pressed="false">能力</button><button data-editor="special" aria-pressed="false">必殺技</button><button data-editor="voice" aria-pressed="false">ボイス</button>
+          </div>
+          <div class="editor-body" id="editor-body"></div>
+        </div>
+      </div>
+    </section>
+    <section id="battle" hidden aria-labelledby="battle-title">
+      <div class="battle-header"><div><div class="eyebrow"><span></span> 桃下道場 / 夕映えの間</div><h1 id="battle-title">CPU対戦</h1></div><button id="pause" class="button secondary">Ⅱ 一時停止 <kbd>Esc</kbd></button></div>
+      <div class="arena fight-arena" id="fight-arena">
+        <canvas id="ring" width="1280" height="650" aria-label="横視点の対戦リング"></canvas>
+        <div class="hud">
+          <div class="meter-group" id="hud0"></div>
+          <div class="clock"><time id="time">60</time><span id="timer-tag">ROUND</span></div>
+          <div class="meter-group right" id="hud1"></div>
+        </div>
+        <div class="banner" id="banner" aria-live="polite"></div>
+        <div class="battle-overlay" id="battle-overlay" hidden></div>
+      </div>
+      <div id="practice-tools" class="practice-tools" hidden>
+        <label for="dummy-live">練習相手</label><select id="dummy-live"><option value="idle">静止</option><option value="guard">ガード</option><option value="active">攻撃する</option></select>
+        <button class="button secondary" id="reset-practice">位置・体力リセット</button><span id="practice-report"></span>
+      </div>
+      <div class="keys box" id="battle-keys"></div>
+    </section>
+    <footer><span>桃下村塾 <i></i> 桃下拳闘</span><span>PCブラウザ版 <i></i> 試作 v1.0</span></footer>
+  </main>
+  <dialog id="dialog"><div class="dialog-top"><h2 id="dialog-title"></h2><button class="icon-btn" id="close-dialog" aria-label="閉じる">×</button></div><div id="dialog-content"></div></dialog>
+  <div id="toast" class="toast" role="status" hidden></div>
+  <noscript>プレイするにはブラウザの JavaScript を有効にしてください。</noscript>
+</body>
+</html>
