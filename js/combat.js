@@ -1,7 +1,7 @@
 (function (root) {
   "use strict";
   const D = root.Dojo;
-  const LIMIT = { left:154, right:1126, spawn:[410,870], round:180, ready:108, dt:1/60 };
+  const LIMIT = { left:154, right:1126, spawn:[410,870], round:120, ready:108, dt:1/60 };
   const RULES = {
     exhaustion:90, jump:665, gravity:1440, superLimit:2, cutIn:66, openingCharge:24,
     chargePerSecond:.40, hitCharge:3.2, receivedCharge:2, guardCharge:2.6, evadeCharge:4.5,

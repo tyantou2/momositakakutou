@@ -92,11 +92,11 @@
     };
   }
   const controls = [
-    { left:"ArrowLeft", right:"ArrowRight", jump:"ArrowUp", guard:"ArrowDown", light:"KeyD", heavy:"KeyF", back:"KeyA", spot:"KeyS", special:"KeyG" },
+    { left:"ArrowLeft", right:"ArrowRight", jump:"ArrowUp", guard:"ArrowDown", light:"KeyS", heavy:"KeyD", back:"KeyQ", spot:"KeyW", special:"KeyE" },
     { left:"KeyJ", right:"KeyL", jump:"KeyI", guard:"KeyK", light:"KeyN", heavy:"KeyM", back:"KeyU", spot:"KeyO", special:"KeyP" }
   ];
   const keyLabels = { ArrowLeft:"←",ArrowRight:"→",ArrowUp:"↑",ArrowDown:"↓",
-    KeyA:"A",KeyS:"S",KeyD:"D",KeyF:"F",KeyG:"G",
+    KeyQ:"Q",KeyW:"W",KeyE:"E",KeyS:"S",KeyD:"D",
     KeyJ:"J",KeyL:"L",KeyI:"I",KeyK:"K",KeyN:"N",KeyM:"M",KeyU:"U",KeyO:"O",KeyP:"P" };
   const api = { clamp, stats, presets, moves, specials, voiceSlots, colors, looks, bonus, normalize, cast, profile, controls, keyLabels };
   root.Dojo = api;
