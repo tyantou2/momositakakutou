@@ -1,0 +1,107 @@
+(function(D) {
+  "use strict";
+  const CLIP_END=.9;
+  const LOAD_LIMIT=450;
+  const STALL_LIMIT=500;
+  const video=document.getElementById("crush-video");
+  let shot=null, state="idle", lastTime=0, stalled=0, clock=null, suspended=false;
+  function eligible(candidate) {
+    return candidate?.a.data.id==="momokage" && candidate.key==="crush";
+  }
+  function stop() {
+    shot=null;
+    state="idle";
+    video.pause();
+    clock=null;
+    suspended=false;
+  }
+  function fallback() {
+    if(state==="idle" || state==="done") return;
+    state="fallback";
+    video.pause();
+  }
+  function play(current) {
+    try {
+      const promise=video.play();
+      if(promise) promise.catch(()=>{
+        if(shot===current && !suspended) fallback();
+      });
+    } catch { fallback(); }
+  }
+  function start(candidate,animate=true) {
+    stop();
+    if(!eligible(candidate) || !animate) return;
+    shot=candidate;
+    state="loading";
+    lastTime=0;
+    stalled=0;
+    try {
+      video.currentTime=0;
+      video.playbackRate=1;
+      play(candidate);
+    } catch { fallback(); }
+  }
+  function update(candidate,paused,now) {
+    if(shot && candidate!==shot) stop();
+    if(!shot || state==="fallback") return "fallback";
+    if(paused) {
+      if(!suspended) video.pause();
+      suspended=true;
+      clock=null;
+      return "hold";
+    }
+    if(suspended) {
+      suspended=false;
+      play(shot);
+    }
+    const elapsed=clock===null?0:Math.min(100,now-clock);
+    clock=now;
+    if(video.error) fallback();
+    if(state==="fallback") return "fallback";
+    if(video.ended || video.currentTime>=CLIP_END) {
+      state="done";
+      video.pause();
+      return "done";
+    }
+    if(video.currentTime>lastTime+.001) {
+      lastTime=video.currentTime;
+      stalled=0;
+      state="playing";
+    } else stalled+=elapsed;
+    if(stalled>(state==="loading"?LOAD_LIMIT:STALL_LIMIT)) {
+      fallback();
+      return "fallback";
+    }
+    return "hold";
+  }
+  function holds(candidate) {
+    return candidate===shot && (state==="loading" || state==="playing");
+  }
+  function draw(c,candidate) {
+    if(!holds(candidate) || video.readyState<2 || !video.videoWidth) return false;
+    const scale=Math.min(1280/video.videoWidth,650/video.videoHeight);
+    const width=video.videoWidth*scale, height=video.videoHeight*scale;
+    c.save();
+    c.fillStyle="#201326";
+    c.fillRect(0,0,1280,650);
+    if(candidate.a.face<0) {
+      c.translate(1280,0);
+      c.scale(-1,1);
+    }
+    try {
+      c.drawImage(video,(1280-width)/2,(650-height)/2,width,height);
+    } catch {
+      c.restore();
+      fallback();
+      return false;
+    }
+    // The last few frames brighten into the return to the live camera.
+    c.globalAlpha=Math.max(0,(video.currentTime-.80)/.10)*.65;
+    c.fillStyle="#fff1f7";
+    c.fillRect(0,0,1280,650);
+    c.restore();
+    return true;
+  }
+  video.addEventListener("error",fallback);
+  D.VideoCutIn={start,stop,update,holds,draw};
+})(Dojo);

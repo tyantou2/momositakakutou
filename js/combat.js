@@ -15,7 +15,7 @@
     const p = D.profile(data);
     return {
       data,p,index,x:LIMIT.spawn[index],lift:0,vy:0,hp:p.hp,stamina:p.staminaMax,meter:RULES.openingCharge,used:0,
-      face:index?-1:1,guard:false,attack:null,stun:0,exhaustion:0,landing:0,captured:null,dodge:0,dodgeType:null,
+      face:index?-1:1,guard:false,attack:null,stun:0,impact:0,exhaustion:0,landing:0,captured:null,dodge:0,dodgeType:null,
       dodgeInputFrame:-Infinity,dodgeInvThreshold:0,perfectLock:0,opening:0,perfectFlash:0,
       knock:0,recovery:0,buffer:null,moving:0,tally:{hit:0,block:0,evade:0,perfect:0,dealt:0}
     };
@@ -58,8 +58,7 @@
       }
       if (this.cinematic) {
         if (++this.cinematic.age>=RULES.cutIn) {
-          this.cinematics.shift();
-          if (this.cinematic) this.announce(this.cinematic);
+          this.endCinematic(this.cinematic);
         }
         return;
       }
@@ -100,6 +99,12 @@
       const {a,key}=shot;
       this.emit("special",a,null,{key});
     }
+    endCinematic(shot) {
+      if (this.cinematic!==shot) return false;
+      this.cinematics.shift();
+      if (this.cinematic) this.announce(this.cinematic);
+      return true;
+    }
     capture(f,cmd) {
       if (cmd.action && !f.exhaustion) f.buffer={action:cmd.action,frames:9,inputFrame:this.frame};
     }
@@ -120,6 +125,7 @@
       const {p}=f;
       let shot=null;
       f.stun=Math.max(0,f.stun-1);
+      f.impact=Math.max(0,f.impact-1);
       f.landing=Math.max(0,f.landing-1);
       if (f.captured) {
         const {owner,attack}=f.captured;
@@ -318,6 +324,8 @@
         }
       }
       b.hp=Math.max(0,b.hp-damage);
+      const crush=a.data.id==="momokage" && move===D.moves.crush && kind!=="block";
+      if(crush) b.impact=18;
       b.stun=Math.max(b.stun,stun);
       b.recovery=Math.max(b.recovery,21);
       b.attack=null;
@@ -327,7 +335,7 @@
       if (normal) this.grant(a,kind==="block"?1.4:RULES.hitCharge);
       this.grant(b,kind==="block"?RULES.guardCharge:RULES.receivedCharge);
       this.freeze=Math.max(this.freeze,move.stop);
-      this.emit(kind,a,b,{point,lift,damage,heavy:move.stop>=6});
+      this.emit(kind,a,b,{point,lift,damage,heavy:move.stop>=6,crush});
     }
     expire(f) {
       if (!f.attack) return;

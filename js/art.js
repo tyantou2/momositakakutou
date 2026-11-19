@@ -154,13 +154,16 @@
   }
   function fighter(c,f,t,ground) {
     const atk=f.attack;
-    const y=ground-f.lift;
+    const recoil=f.impact?Math.sin((18-f.impact)/18*Math.PI):0;
+    const y=ground-f.lift-recoil*12;
     const bob=f.lift ? 0 : f.moving ? Math.abs(Math.sin(t*.24+f.index))*6 : Math.sin(t*.075+f.index)*2;
     const active=atk && (atk.move.beats.some(beat=>Math.abs(atk.age-atk.wind-beat)<=4) || atk.spent && atk.age<32);
     const charge=atk && !active && atk.age<atk.wind;
     const evade=f.dodge>0;
-    const lean=active?.14:charge?-.11:evade?-.20:f.exhaustion?.22:f.stun?-.13:0;
-    const extend=active?Math.max(24,atk.move.reach*.54+f.p.reach):0;
+    const crush=f.data.id==="momokage" && atk?.key==="crush";
+    const followThrough=crush && atk.age>=atk.wind?Math.max(0,1-(atk.age-atk.wind)/18):0;
+    const lean=recoil?-.13-recoil*.20:active?.14:charge?-.11:evade?-.20:f.exhaustion?.22:f.stun?-.13:followThrough*.14;
+    const extend=active?Math.max(24,atk.move.reach*.54+f.p.reach):followThrough*57;
     const h=f.p.bodyHeight;
     c.save();
     const shadow=c.createRadialGradient(f.x,ground,1,f.x,ground,82);
@@ -185,6 +188,16 @@
     if(f.hp<=0) c.globalAlpha=.64;
     const squash=f.exhaustion?.88:f.guard?.955:evade && f.dodgeType==="spot"?.91:1;
     draw(c,f.data,f.x,y-bob,h,f.face,{tilt:f.hp<=0?-.42:lean,squash,extend,guard:f.guard,walk:f.moving?Math.sin(t*.29)*9:0});
+    if(crush && (charge || active)) {
+      const progress=charge?atk.age/atk.wind:1;
+      const radius=12+progress*18;
+      const x=f.x+f.face*(h*.24+extend), fy=y-h*.40-extend*.18;
+      const glow=c.createRadialGradient(x,fy,2,x,fy,radius*2.1);
+      glow.addColorStop(0,"#fff9f1e8");glow.addColorStop(.35,"#ffbbdbbd");glow.addColorStop(1,"#ff88c500");
+      ellipse(c,x,fy,radius*2.1,radius*1.7,glow,null);
+      c.strokeStyle="#ffe1ee";c.lineWidth=2;
+      c.beginPath();c.ellipse(x,fy,radius,radius*.8,progress*3,0,Math.PI*1.7);c.stroke();
+    }
     if (f.guard || atk?.key==="counter" && atk.age<=20) {
       c.strokeStyle=f.guard?"#a3dcffcf":"#f3beffcb"; c.lineWidth=3;
       c.beginPath(); c.ellipse(f.x+f.face*25,y-h*.50,Math.max(43,h*.25),h*.44,0,-1.32,1.05,f.face===-1); c.stroke();
@@ -262,6 +275,21 @@
       c.save();
       c.globalAlpha=Math.min(1,(1-age)*1.7);
       const impact=["hit","block","break","counter","perfect"].includes(e.type);
+      if(e.crush && age<.75) {
+        c.save();c.translate(x,height);c.scale(e.a.face,1);
+        const ring=22+age*185;
+        c.globalAlpha=(1-age/.75)*.85;
+        c.shadowColor="#ff93c8";c.shadowBlur=22;
+        c.strokeStyle="#ffa2ce";c.lineWidth=13*(1-age);
+        c.beginPath();c.ellipse(0,0,ring,ring*.60,0,0,Math.PI*2);c.stroke();
+        c.strokeStyle="#fff2f4";c.lineWidth=5*(1-age);
+        c.beginPath();c.ellipse(9,0,ring*.76,ring*.46,0,0,Math.PI*2);c.stroke();
+        for(let i=0;i<7;i++) {
+          const angle=-1.05+i*.35;
+          line(c,[[Math.cos(angle)*ring*.75,Math.sin(angle)*ring*.6],[Math.cos(angle)*(ring+32),Math.sin(angle)*(ring+32)*.6]],"#ffe5f0",3);
+        }
+        c.restore();
+      }
       if (impact && age<.61) {
         c.translate(x,height);
         for(let i=0;i<9;i++) {

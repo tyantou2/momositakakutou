@@ -85,7 +85,11 @@
       case "special": tone(220,659,.26,.14,"triangle"); tone(440,932,.18,.09,"sine",.08); callout(e.a,"special"); break;
       case "hit":
       case "break":
-      case "counter": thump(e.heavy?.2:.105,.35,2150);tone(e.heavy?137:174,48,e.heavy?.18:.09,.28,"triangle");callout(e.b,"damage");break;
+      case "counter":
+        thump(e.crush?.23:e.heavy?.2:.105,.35,2150);
+        tone(e.heavy?137:174,48,e.heavy?.18:.09,.28,"triangle");
+        if(e.crush) tone(88,32,.29,.24,"sine");
+        callout(e.b,"damage");break;
       case "block": thump(.1,.19,870);tone(790,480,.1,.14,"triangle");break;
       case "step": thump(.10,.080,e.key==="back"?1340:880); break;
       case "jump": tone(136,260,.10,.075,"triangle");break;

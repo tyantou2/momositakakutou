@@ -35,6 +35,7 @@
   let mode="cpu", difficulty="normal", dummy="idle", screen="lobby", slot=0, editorTab="appearance";
   let selected=D.cast.slice(0,2).map(f=>f.id);
   let draft=fresh(), match=null, paused=false, fx=[], shake=0, accumulator=0, last=0;
+  let returnFlash=0;
   let toastTimer, editorVersion=0;
   const keys = new Set(), queue=[null,null];
   const gameCodes = new Set(D.controls.flatMap(map=>Object.values(map)));
@@ -83,6 +84,7 @@
   }
   function show(page) {
     if (page!=="battle" && screen==="battle") {
+      D.VideoCutIn.stop();
       D.Audio.stopVoices();match=null;paused=false;clearKeys();
     }
     if (page!==screen) D.Audio.stopVoices();
@@ -364,6 +366,7 @@
     keys.clear();queue.fill(null);
   }
   function start() {
+    D.VideoCutIn.stop();returnFlash=0;
     D.Audio.stopVoices();D.Audio.init();
     match=new D.Match({fighters:[getFighter(0),getFighter(1)],mode,difficulty,dummy});
     paused=false;fx=[];shake=0;accumulator=0;clearKeys();
@@ -434,7 +437,7 @@
       const t=match.fighters[0].tally;
       $("practice-report").textContent="命中 "+t.hit+"　ガード "+t.block+"　回避 "+t.evade+"　ジャスト "+t.perfect+"　総ダメージ "+Math.round(t.dealt);
     }
-    $("banner").textContent=match.cinematic?"":match.phase==="ready"?"READY":match.frame<46 && match.phase==="fight"?"FIGHT":"";
+    $("banner").textContent=match.cinematic?"":match.phase==="ready"?"READY":match.frame<46 && match.phase==="fight" && match.fighters.every(f=>f.used===0)?"FIGHT":"";
     const caption=$("cut-in-caption");
     const text=match.cinematic?match.cinematic.a.data.name+"の"+D.moves[match.cinematic.key].label:"";
     if(caption.textContent!==text)caption.textContent=text;
@@ -444,11 +447,23 @@
     const elapsed=Math.min(80,now-last);
     last=now;
     if(screen!=="battle" || !match) return;
+    const videoState=D.VideoCutIn.update(match.cinematic,paused,now);
+    $("fight-arena").classList.toggle("video-cinematic",D.VideoCutIn.holds(match.cinematic));
+    if(videoState==="done" && !paused) {
+      D.VideoCutIn.stop();
+      match.endCinematic(match.cinematic);
+      returnFlash=8;
+      clearKeys();
+    }
     if(!paused && match.phase!=="over") {
-      accumulator+=elapsed;
-      while(accumulator>=1000/60 && match.phase!=="over") {
+      if(D.VideoCutIn.holds(match.cinematic)) {
+        accumulator=0;
+        clearKeys();
+      } else accumulator+=elapsed;
+      while(accumulator>=1000/60 && match.phase!=="over" && !D.VideoCutIn.holds(match.cinematic)) {
         match.tick(command(0),command(1));
         for(const event of match.drain()) {
+          if(event.type==="special") D.VideoCutIn.start(match.cinematic,settings.motion);
           D.Audio.event(event);
           if(event.type==="over"){result();continue;}
           if(!["fight","swing","step","jump","special"].includes(event.type)) fx.push({...event,age:0});
@@ -456,8 +471,10 @@
         }
         if(!match.cinematic) fx=fx.filter(e=>++e.age<36);
         shake*=.79;
+        returnFlash=Math.max(0,returnFlash-1);
         accumulator-=1000/60;
       }
+      if(D.VideoCutIn.holds(match.cinematic)) accumulator=0;
       hud();
     }
     context.clearRect(0,0,1280,650);
@@ -466,8 +483,14 @@
     D.Art.stage(context,542);
     for(const f of match.fighters) D.Art.fighter(context,f,match.frame,542);
     D.Art.effects(context,fx,542);
-    if(match.cinematic) D.Art.cinematic(context,match.cinematic,settings.motion);
+    if(match.cinematic && !D.VideoCutIn.draw(context,match.cinematic)) D.Art.cinematic(context,match.cinematic,settings.motion);
     context.restore();
+    if(returnFlash) {
+      context.save();
+      context.globalAlpha=returnFlash/8*.65;
+      context.fillStyle="#fff0f7";context.fillRect(0,0,1280,650);
+      context.restore();
+    }
   }
   function overlay(label,title,detail,actions,statistics) {
     const card=node("div","result");
@@ -542,7 +565,7 @@
   };
   $("save").onclick=save;$("start").onclick=start;$("pause").onclick=togglePause;
   $("dummy-live").onchange=e=>{dummy=e.target.value;if(match)match.dummy=dummy;clearKeys();e.target.blur();};
-  $("reset-practice").onclick=()=>{match?.resetPractice();fx=[];clearKeys();};
+  $("reset-practice").onclick=()=>{D.VideoCutIn.stop();match?.resetPractice();returnFlash=0;fx=[];clearKeys();};
   drawSound();
   if(!settings.sound)D.Audio.mute(true);
   paintLobby();

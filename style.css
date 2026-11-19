@@ -19,6 +19,7 @@ dialog{max-width:min(550px,94vw);background:#241a30;color:var(--ink);border:1px 
 @media(max-height:840px) and (min-width:741px){.frame{padding-top:22px}.title-row{margin-bottom:16px}.preview{height:clamp(279px,41vh,369px)}.mode-section,.roster-section{margin-top:15px}}
 .visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 .fight-arena.cinematic .hud{opacity:.17}
+.fight-arena.video-cinematic .hud{visibility:hidden}
 .hud .bar.sta.low i{background:#fa885f}
 .fighter-state{display:inline-flex;margin-top:8px;border-radius:4px;padding:4px 8px;background:#201526db;border:1px solid #d9b2da6a;color:#f6ddef;font-size:11px;font-weight:900;letter-spacing:.045em}
 .fighter-state:empty{display:none}
