@@ -20,7 +20,7 @@
   const moves = {
     light: { label: "弱パンチ", wind: 10, beats: [0], end: 17, cost: 10, reach: 96, damage: 7, stun: 12, push: 78, stop: 3, step: 116 },
     heavy: { label: "強パンチ", wind: 24, beats: [0], end: 33, cost: 24, reach: 133, damage: 16, stun: 26, push: 310, stop: 8, step: 132 },
-    rush: { label: "百花ラッシュ", type: "ラッシュ", icon: "≋", wind: 13, beats: [0,8,16,24], end: 25, reach: 125, damage: 9, stun: 14, push: 45, stop: 3, step: 98, color: "#ff97b5", detail: "近距離で４連打。距離が離れると途中で途切れる。" },
+    rush: { label: "百花ラッシュ", type: "ラッシュ", icon: "≋", wind: 13, beats: [0,8,16,24], end: 25, reach: 125, damage: 9, stun: 14, push: 45, stop: 3, step: 98, color: "#ff97b5", detail: "近距離で４連打。初撃が命中すると残り３発も必ずつながる。" },
     crush: { label: "白桃砕き", type: "ヘビー", icon: "✦", wind: 29, beats: [0], end: 34, reach: 154, damage: 43, stun: 31, push: 435, stop: 9, step: 117, guardScale: 1.75, color: "#ffbd7d", detail: "大きく溜める一撃。ガードを大きく削るが、外すと隙が長い。" },
     counter: { label: "返しの一閃", type: "カウンター", icon: "⤺", wind: 1, beats: [], end: 42, reach: 164, damage: 37, stun: 27, push: 352, stop: 8, step: 0, color: "#cbafff", detail: "構えてから約0.33秒間、相手の打撃に自動で反撃。読まれると隙が残る。" },
     comet: { label: "飛桃ストレート", type: "接近攻撃", icon: "➜", wind: 19, beats: [0], end: 30, reach: 128, damage: 34, stun: 26, push: 331, stop: 7, step: 495, color: "#8de9f4", detail: "最大約157の距離を一気に詰める一発。接近中に打たれると中断する。" }

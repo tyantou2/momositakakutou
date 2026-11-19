@@ -5,7 +5,8 @@
   const RULES = {
     exhaustion:90, jump:665, gravity:1440, superLimit:2, cutIn:66, openingCharge:24,
     chargePerSecond:.40, hitCharge:3.2, receivedCharge:2, guardCharge:2.6, evadeCharge:4.5,
-    perfectWindow:3, perfectCooldown:120, punishWindow:40, perfectRecovery:5, perfectStop:5
+    perfectWindow:3, perfectCooldown:120, punishWindow:40, perfectRecovery:5, perfectStop:5,
+    landingRecovery:12, guardDrain:6
   };
   const passive = () => ({ axis:0, guard:false });
   const gap = (a,b) => Math.abs(a.x-b.x);
@@ -14,7 +15,7 @@
     const p = D.profile(data);
     return {
       data,p,index,x:LIMIT.spawn[index],lift:0,vy:0,hp:p.hp,stamina:p.staminaMax,meter:RULES.openingCharge,used:0,
-      face:index?-1:1,guard:false,attack:null,stun:0,exhaustion:0,dodge:0,dodgeType:null,
+      face:index?-1:1,guard:false,attack:null,stun:0,exhaustion:0,landing:0,captured:null,dodge:0,dodgeType:null,
       dodgeInputFrame:-Infinity,dodgeInvThreshold:0,perfectLock:0,opening:0,perfectFlash:0,
       knock:0,recovery:0,buffer:null,moving:0,tally:{hit:0,block:0,evade:0,perfect:0,dealt:0}
     };
@@ -75,8 +76,12 @@
       const openings=[this.update(a,p1),this.update(b,second)].filter(Boolean);
       this.separate();
       const hits=[this.strike(a,b),this.strike(b,a)].filter(Boolean);
+      // A landed multi-hit special takes priority over a simultaneous counterhit.
+      hits.sort((x,y)=>Number(y.kind==="hit" && y.move.beats.length>1)-Number(x.kind==="hit" && x.move.beats.length>1));
       const countered=new Set(hits.filter(hit=>hit.kind==="counter").map(hit=>hit.a));
-      for (const hit of hits) if (!countered.has(hit.b)) this.apply(hit);
+      for (const hit of hits) {
+        if (!countered.has(hit.b) && hit.b.attack?.connected!==hit.a) this.apply(hit);
+      }
       this.expire(a);
       this.expire(b);
       if (this.mode==="practice") {
@@ -115,6 +120,14 @@
       const {p}=f;
       let shot=null;
       f.stun=Math.max(0,f.stun-1);
+      f.landing=Math.max(0,f.landing-1);
+      if (f.captured) {
+        const {owner,attack}=f.captured;
+        if(owner.attack===attack) {
+          f.stun=Math.max(f.stun,2);
+          f.buffer=null;
+        } else f.captured=null;
+      }
       f.perfectLock=Math.max(0,f.perfectLock-1);
       f.opening=Math.max(0,f.opening-1);
       f.perfectFlash=Math.max(0,f.perfectFlash-1);
@@ -125,7 +138,7 @@
       f.x+=f.knock*LIMIT.dt;
       f.moving=0;
       f.guard=false;
-      if (!f.attack && !f.stun && !f.dodge && !f.exhaustion) {
+      if (!f.attack && !f.stun && !f.dodge && !f.exhaustion && !f.landing) {
         const action=f.buffer?.action;
         if (action) {
           const grounded=f.lift===0;
@@ -136,7 +149,11 @@
         }
         if (!f.attack && !f.dodge && !f.exhaustion) {
           f.guard=!!cmd.guard && f.lift===0;
-          f.moving=cmd.axis || 0;
+          if(f.guard) {
+            f.stamina=Math.max(0,f.stamina-RULES.guardDrain*LIMIT.dt);
+            if(f.stamina===0) this.exhaust(f);
+          }
+          f.moving=f.exhaustion?0:(cmd.axis || 0);
           const speed=f.guard?.43:f.lift>0?.82:Math.sign(cmd.axis)===f.face?1:.78;
           f.x+=f.moving*p.walk*speed*LIMIT.dt;
         }
@@ -148,15 +165,19 @@
       if(f.lift>0 || f.vy>0) {
         f.vy-=RULES.gravity*LIMIT.dt;
         f.lift=Math.max(0,f.lift+f.vy*LIMIT.dt);
-        if (f.lift===0) f.vy=0;
+        if (f.lift===0) {
+          f.vy=0;
+          f.landing=RULES.landingRecovery;
+          f.attack=null;
+        }
       }
       if (f.dodge>0) {
         if (f.dodgeType==="back" && f.dodge>8) f.x-=f.face*p.dodgeSpeed*LIMIT.dt;
         f.dodge--;
       }
       if (f.buffer && --f.buffer.frames<=0) f.buffer=null;
-      if (!f.attack && !f.dodge && !f.recovery && !f.stun && !f.exhaustion) {
-        const recovery=f.guard?.16:f.lift>0?.40:1;
+      if (!f.attack && !f.dodge && !f.recovery && !f.stun && !f.exhaustion && !f.guard && !f.landing) {
+        const recovery=f.lift>0?.40:1;
         f.stamina=Math.min(p.staminaMax,f.stamina+p.regen*recovery*LIMIT.dt);
       }
       return shot;
@@ -221,6 +242,9 @@
       const attack=a.attack;
       if (!attack || !attack.move.beats.includes(attack.age-attack.wind)) return null;
       const {move}=attack;
+      if (attack.connected===b) {
+        return {kind:"hit",a,b,move,point:b.x-a.face*b.p.hurt*.54,lift:b.lift};
+      }
       const distance=gap(a,b);
       const level=a.lift+a.p.bodyHeight*.40;
       const y=level-b.lift;
@@ -279,11 +303,25 @@
         a.attack.spent=true;
         a.attack.age=24;
       }
+      if (kind==="hit" && move.beats.length>1 && a.attack) {
+        const attack=a.attack;
+        if (attack.age===attack.wind) {
+          attack.connected=b;
+          b.captured={owner:a,attack};
+          b.buffer=null;
+          b.dodge=0;
+        }
+        if(attack.connected===b) {
+          b.knock=0;
+          b.vy=0;
+          if(attack.age===attack.wind+move.beats.at(-1)) b.captured=null;
+        }
+      }
       b.hp=Math.max(0,b.hp-damage);
       b.stun=Math.max(b.stun,stun);
       b.recovery=Math.max(b.recovery,21);
       b.attack=null;
-      b.knock=a.face*move.push*(kind==="block"?.57:1);
+      b.knock=b.captured?0:a.face*move.push*(kind==="block"?.57:1);
       if (kind!=="block") a.tally.hit++;
       a.tally.dealt+=damage;
       if (normal) this.grant(a,kind==="block"?1.4:RULES.hitCharge);

@@ -61,7 +61,7 @@
     src.connect(filter).connect(gain).connect(audio.destination);src.start(t);src.stop(t+length);
   }
   function characterVoice(f,tag) {
-    return f.data.voice[tag]?.data || (builtIn.has(f.data.id)?"assets/"+f.data.id+"-"+tag+".mp3":null);
+    return f.data.voice[tag]?.data || (builtIn.has(f.data.id)?"assets/"+f.data.id+"-"+tag+".mp3?v=2.3":null);
   }
   function callout(f,tag) {
     if(!f) return;
