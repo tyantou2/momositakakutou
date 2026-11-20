@@ -31,3 +31,5 @@ dialog{max-width:min(550px,94vw);background:#241a30;color:var(--ink);border:1px 
 .clock{min-width:85px}
 .clock time{font-variant-numeric:tabular-nums}
 #voice-credit{font-size:11px;color:var(--muted);line-height:1.65;margin-top:10px}
+.modes{grid-template-columns:repeat(4,minmax(0,1fr))}.button:disabled{opacity:.5;cursor:default}.online-panel{margin:20px 0;padding:20px;border:1px solid #6ce7ed55;border-radius:12px;background:linear-gradient(120deg,#172d3b,#251b31)}.online-panel p{font-size:13px;line-height:1.7}.online-tag,.net-status{color:#91f0f5;font-size:12px}.online-actions{display:flex;align-items:end;gap:10px;flex-wrap:wrap;margin:12px 0}.online-actions label{display:flex;flex-direction:column;gap:5px;font-size:11px;color:#d2c2d7}.online-actions input{width:190px;max-width:100%;padding:10px;background:#131423;border:1px solid #628493;border-radius:6px;color:#defaff;font:700 18px monospace;letter-spacing:.1em}.net-status{margin:4px 0 0}.online-panel [hidden]{display:none}
+@media(max-width:900px){.modes{grid-template-columns:repeat(2,minmax(0,1fr))}.mode-section{align-items:stretch}.start{height:100%}}

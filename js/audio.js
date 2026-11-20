@@ -83,6 +83,7 @@
       case "fight": tone(415,622,.19,.13,"triangle"); break;
       case "swing": thump(.11,e.key==="heavy"?.11:.064,1800); callout(e.a,"attack"); break;
       case "special":
+        if(e.key==="azure") {tone(180,1000,.35,.13,"sawtooth");tone(740,1480,.20,.08,"sine",.15);break;}
         if(e.a.data.id==="momokage" && e.key==="crush" && videoCutIn) {
           tone(80,210,.80,.11,"sine");thump(.18,.10,1000);break;
         }
@@ -94,6 +95,7 @@
         thump(e.crush?.23:e.heavy?.2:.105,.35,2150);
         tone(e.heavy?137:174,48,e.heavy?.18:.09,.28,"triangle");
         if(e.crush) { tone(76,28,.34,.28,"sine");tone(240,70,.11,.10,"triangle"); }
+        if(e.azure) {tone(e.finisher?95:620,e.finisher?30:220,e.finisher?.29:.10,.15,"triangle");}
         callout(e.b,"damage");break;
       case "block": thump(.1,.19,870);tone(790,480,.1,.14,"triangle");break;
       case "step": thump(.10,.080,e.key==="back"?1340:880); break;

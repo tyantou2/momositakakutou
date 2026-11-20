@@ -21,9 +21,10 @@
     };
   }
   class Match {
-    constructor({ fighters, mode, difficulty = "normal", dummy = "idle", random = Math.random }) {
+    constructor({ fighters, mode, difficulty = "normal", dummy = "idle", random = Math.random, online=false }) {
       this.fighters = fighters.map(boxer);
       this.mode=mode;
+      this.online=online;
       this.difficulty=difficulty;
       this.dummy=dummy;
       this.random=random;
@@ -57,8 +58,8 @@
         return;
       }
       if (this.cinematic) {
-        if (++this.cinematic.age>=RULES.cutIn) {
-          this.endCinematic(this.cinematic);
+        if (++this.cinematic.age>=(this.cinematic.duration || RULES.cutIn)) {
+          this.endCinematic(this.cinematic,this.online);
         }
         return;
       }
@@ -93,6 +94,10 @@
         return;
       }
       this.cinematics=openings.filter(shot=>shot.a.attack?.key===shot.key);
+      for(const shot of this.cinematics) {
+        shot.serial=this.frame*2+shot.a.index;
+        if(this.online && shot.a.data.id==="momokage" && shot.key==="crush") shot.duration=255;
+      }
       // Snapshot after BOTH updates, so a pre-entered defense works on either side.
       for (const shot of this.cinematics) {
         if(!shot.a.attack.move.beats.length) continue;
@@ -323,6 +328,8 @@
         return;
       }
       const normal=move===D.moves.light || move===D.moves.heavy;
+      const azure=move===D.moves.azure && kind!=="block";
+      const finisher=azure && a.attack?.age===a.attack.wind+move.beats.at(-1);
       let damage=move.damage*a.p.damage;
       let stun=move.stun;
       if (kind==="block") {
@@ -362,13 +369,13 @@
       b.stun=Math.max(b.stun,stun);
       b.recovery=Math.max(b.recovery,21);
       b.attack=null;
-      b.knock=b.captured?0:a.face*move.push*(kind==="block"?.57:1);
+      b.knock=b.captured?0:a.face*(finisher?345:move.push)*(kind==="block"?.57:1);
       if (kind!=="block") a.tally.hit++;
       a.tally.dealt+=damage;
       if (normal) this.grant(a,kind==="block"?1.4:RULES.hitCharge);
       this.grant(b,kind==="block"?RULES.guardCharge:RULES.receivedCharge);
-      this.freeze=Math.max(this.freeze,move.stop);
-      this.emit(kind,a,b,{point,lift,damage,heavy:move.stop>=6,crush});
+      this.freeze=Math.max(this.freeze,finisher?9:move.stop);
+      this.emit(kind,a,b,{point,lift,damage,heavy:finisher || move.stop>=6,crush,azure,finisher});
     }
     expire(f) {
       if (!f.attack) return;

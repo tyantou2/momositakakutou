@@ -6,13 +6,16 @@
   <meta name="color-scheme" content="dark">
   <title>桃下拳闘 — 桃下村塾</title>
   <link rel="preload" href="assets/dojo.png" as="image">
-  <link rel="stylesheet" href="style.css?v=2.7">
-  <script defer src="js/data.js?v=2.7"></script>
-  <script defer src="js/combat.js?v=2.7"></script>
-  <script defer src="js/art.js?v=2.7"></script>
-  <script defer src="js/audio.js?v=2.7"></script>
-  <script defer src="js/cutin-video.js?v=2.7"></script>
-  <script defer src="js/app.js?v=2.7"></script>
+  <link rel="stylesheet" href="style.css?v=3.0">
+  <script defer src="vendor/peerjs-1.5.5.min.js"></script>
+  <script defer src="js/data.js?v=3.0"></script>
+  <script defer src="js/combat.js?v=3.0"></script>
+  <script defer src="js/netcode.js?v=3.0"></script>
+  <script defer src="js/online.js?v=3.0"></script>
+  <script defer src="js/art.js?v=3.0"></script>
+  <script defer src="js/audio.js?v=3.0"></script>
+  <script defer src="js/cutin-video.js?v=3.0"></script>
+  <script defer src="js/app.js?v=3.0"></script>
 </head>
 <body>
   <header class="top">
@@ -61,9 +64,23 @@
             <button class="mode selected" data-mode="cpu" aria-pressed="true"><i data-icon="cpu"></i><span><strong>CPU対戦</strong><small>コンピューターと対戦</small></span></button>
             <button class="mode" data-mode="local" aria-pressed="false"><i data-icon="local"></i><span><strong>ローカル対戦</strong><small>同じPCで二人対戦</small></span></button>
             <button class="mode" data-mode="practice" aria-pressed="false"><i data-icon="practice"></i><span><strong>練習</strong><small>技と間合いを試す</small></span></button>
+            <button class="mode" data-mode="online" aria-pressed="false"><i data-icon="local"></i><span><strong>オンライン対戦</strong><small>招待コードで対戦</small></span></button>
           </div>
         </div>
         <button id="start" class="button primary start"><span><i data-icon="fight"></i> <strong id="start-label">試合開始</strong></span><b aria-hidden="true">→</b></button>
+      </section>
+      <section id="online-panel" class="online-panel" hidden aria-label="オンライン対戦の部屋">
+        <div class="section-heading"><h2>友達と対戦</h2><span class="online-tag">INVITE MATCH</span></div>
+        <p id="online-message" role="status" aria-live="polite"></p>
+        <div class="online-actions">
+          <button id="online-host" class="button secondary">部屋を作る</button>
+          <label for="online-join-code">招待コード<input id="online-join-code" maxlength="20" placeholder="ABCD-EFGH" autocomplete="off" spellcheck="false"></label>
+          <button id="online-join" class="button secondary">参加する</button>
+          <button id="online-leave" class="button secondary" hidden>部屋を退出</button>
+        </div>
+        <div id="online-code-row" class="online-actions" hidden><label for="online-code">共有するコード<input id="online-code" readonly></label><button id="online-copy" class="button secondary">コピー</button></div>
+        <p id="online-members" class="note"></p>
+        <p class="note">接続したら自分のファイターを選び、双方が「準備完了」で開始。どちらも矢印キーと左側の攻撃キーを使います。対戦中はこの画面を開いたままにしてください。</p>
       </section>
       <section class="roster-section" aria-labelledby="roster-title">
         <div class="section-heading"><h2 id="roster-title">ファイター選択</h2><div class="toggle" id="slot-toggle" aria-label="選択する側"><button data-side="0" aria-pressed="true">1P</button><button data-side="1" aria-pressed="false">CPU</button></div></div>
@@ -99,7 +116,7 @@
       </div>
     </section>
     <section id="battle" hidden aria-labelledby="battle-title">
-      <div class="battle-header"><div><div class="eyebrow"><span></span> 桃下道場 / 夕映えの間</div><h1 id="battle-title">CPU対戦</h1></div><button id="pause" class="button secondary">Ⅱ 一時停止 <kbd>Esc</kbd></button></div>
+      <div class="battle-header"><div><div class="eyebrow"><span></span> 桃下道場 / 夕映えの間</div><h1 id="battle-title">CPU対戦</h1><p id="net-status" class="net-status" role="status" hidden></p></div><button id="pause" class="button secondary">Ⅱ 一時停止 <kbd>Esc</kbd></button></div>
       <div class="arena fight-arena" id="fight-arena">
         <video id="crush-video" preload="auto" muted playsinline hidden src="assets/momokage-crush-cinematic-v25.mp4"></video>
         <canvas id="ring" width="1280" height="650" aria-label="横視点の対戦リング"></canvas>
@@ -118,7 +135,7 @@
       </div>
       <div class="keys box" id="battle-keys"></div>
     </section>
-    <footer><span>桃下村塾 <i></i> 桃下拳闘</span><span>PCブラウザ版 <i></i> 試作 v2.7</span></footer>
+    <footer><span>桃下村塾 <i></i> 桃下拳闘</span><span>PCブラウザ版 <i></i> v3.0</span></footer>
   </main>
   <dialog id="dialog"><div class="dialog-top"><h2 id="dialog-title"></h2><button class="icon-btn" id="close-dialog" aria-label="閉じる">×</button></div><div id="dialog-content"></div></dialog>
   <div id="toast" class="toast" role="status" hidden></div>

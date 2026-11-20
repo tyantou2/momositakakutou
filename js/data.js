@@ -18,6 +18,7 @@
     tank: { name: "タフ", speed: 2, power: 6, bonus: { stamina: 4, dodge: 1, guard: 5 } }
   };
   const moves = {
+    azure: { label:"蒼閃・一文字", type:"ゃん専用", icon:"⚡", wind:21, beats:[0,7,14], end:36, reach:134, damage:13, stun:14, push:35, stop:4, step:225, color:"#6bf2ff", detail:"蒼い残像を残して踏み込む三連撃。初撃命中で連続ヒットし、最後の一撃で吹き飛ばす。外した後は隙が大きい。" },
     light: { label: "弱パンチ", wind: 10, beats: [0], end: 17, cost: 10, reach: 96, damage: 7, stun: 12, push: 78, stop: 3, step: 116 },
     heavy: { label: "強パンチ", wind: 24, beats: [0], end: 33, cost: 24, reach: 133, damage: 16, stun: 26, push: 310, stop: 8, step: 132 },
     rush: { label: "百花ラッシュ", type: "ラッシュ", icon: "≋", wind: 13, beats: [0,8,16,24], end: 25, reach: 125, damage: 9, stun: 14, push: 45, stop: 3, step: 98, color: "#ff97b5", detail: "近距離で４連打。初撃が命中すると残り３発も必ずつながる。" },
@@ -75,6 +76,8 @@
     rosterEntry({ id:"momonosuke",name:"もものすけ",height:1,speed:8,power:5,bonus:{stamina:5,dodge:4,guard:1},special:"rush" },
       { image:"assets/momonosuke.png", epithet:"好奇心いっぱいの桃の妖精", short:"桃の妖精", accent:"#ffa4be", arm:"#f6dce6", sprite:{ crop:[150,40,939,1087], align:.55, glove:[.82,.58], shoulder:[.76,.66] } })
   ];
+  cast.push(rosterEntry({id:"yan",name:"ゃん",height:6,speed:6,power:5,bonus:{stamina:4,dodge:3,guard:3}},
+    {special:"azure",image:"assets/yan.webp",epithet:"蒼閃を放つ桃下の挑戦者",short:"蒼閃の挑戦者",accent:"#6bf2ff",arm:"#23263e",mitt:"#343b4c",sprite:{crop:[22,55,548,760],align:.50,glove:[.88,.44],shoulder:[.64,.52]}}));
   function profile(fighter) {
     const { speed, power, height } = fighter;
     const toughness = 11 - speed;

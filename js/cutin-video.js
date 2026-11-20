@@ -94,11 +94,11 @@
   function draw(c,candidate) {
     if(!holds(candidate)) return false;
     if(state==="title") {
-      D.Art.cinematic(c,{...candidate,age:Math.min(54,titleTime/TITLE_TIME*58)},true);
+      D.Art.cinematic(c,{...candidate,duration:D.RULES.cutIn,age:Math.min(54,titleTime/TITLE_TIME*58)},true);
       return true;
     }
     if(video.readyState<2 || !video.videoWidth || video.seeking || video.currentTime<CLIP_START) {
-      D.Art.cinematic(c,{...candidate,age:54},true);
+      D.Art.cinematic(c,{...candidate,duration:D.RULES.cutIn,age:54},true);
       return true;
     }
     const scale=Math.min(1280/video.videoWidth,650/video.videoHeight);
@@ -125,5 +125,24 @@
     return true;
   }
   video.addEventListener("error",fallback);
-  D.VideoCutIn={start,stop,update,holds,isVideo,draw};
+  function online(candidate,animate,running=true) {
+    if(!eligible(candidate) || !animate) {if(shot)stop();return;}
+    // Rollback restores object identities; the activation serial remains stable.
+    if(!shot || shot.serial!==candidate.serial)start(candidate,true);
+    else shot=candidate;
+    titleTime=candidate.age/60*1000;
+    if(state==="fallback")return;
+    if(titleTime<TITLE_TIME) {state="title";suspended=true;video.pause();return;}
+    if(video.error){state="loading";fallback();return;}
+    const target=Math.min(CLIP_END-.025,CLIP_START+(titleTime-TITLE_TIME)/1000);
+    if(state==="title") {state="loading";stalled=0;try{video.currentTime=target;}catch{fallback();return;}}
+    if(video.readyState>=2) {
+      if(!video.seeking && Math.abs(video.currentTime-target)>.12)video.currentTime=target;
+      state="playing";
+    }
+    suspended=!running || target>=CLIP_END-.026;
+    if(suspended)video.pause();
+    else if(video.paused)play(candidate);
+  }
+  D.VideoCutIn={start,stop,update,holds,isVideo,draw,online};
 })(Dojo);

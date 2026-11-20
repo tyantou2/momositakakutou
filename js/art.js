@@ -7,6 +7,7 @@
     img.src = f.image;
     images[f.id] = img;
   }
+  const yanPoses=new Image();yanPoses.src="assets/yan-poses.webp";
   const outline = "#281d38";
   function ellipse(c,x,y,rx,ry,fill,stroke=outline) {
     c.beginPath();
@@ -102,16 +103,22 @@
     line(c,[shoulder,[25+extension*.22,-54],fore],a.outfit===2?skin:cloth,20);
     glove(c,fore[0],fore[1],15,g);
   }
-  function mascot(c,f,height,extension,guard) {
+  function mascot(c,f,height,extension,guard,pose={}) {
     const img = images[f.id];
     if (!img?.complete || !img.naturalWidth) return;
     const { crop, align, glove:hand, shoulder } = f.sprite;
+    if(f.id==="yan" && pose.strike && yanPoses.complete && yanPoses.naturalWidth) {
+      const [source,anchor]=pose.strike===2?[[1088,6,370,500],.403]:[[582,6,345,500],.394];
+      const width=height*source[2]/source[3];
+      c.drawImage(yanPoses,...source,-width*anchor,-height,width,height);return;
+    }
     const width=height*crop[2]/crop[3], left=-width*align;
     c.drawImage(img,...crop,left,-height,width,height);
+    if(f.id==="yan")return;
     if (extension<=.5 && !guard) return;
     const end=[left+width*hand[0]+extension,-height*(1-hand[1])-extension*.18-(guard?12:0)];
     const start=[left+width*shoulder[0],-height*(1-shoulder[1])];
-    const mitt=f.id==="momokage"?"#3e4876":"#eb7d9a";
+    const mitt=f.mitt || (f.id==="momokage"?"#3e4876":"#eb7d9a");
     const radius=height*.063;
     line(c,[start,end],outline,radius*1.48);
     line(c,[start,end],f.arm,radius*1.29);
@@ -123,7 +130,7 @@
     c.scale(face,1);
     c.rotate(pose.tilt||0);
     const height=h*(pose.squash||1);
-    if (f.image) mascot(c,f,height,pose.extend||0,pose.guard);
+    if (f.image) mascot(c,f,height,pose.extend||0,pose.guard,pose);
     else {
       c.scale(height/181,height/181);
       custom(c,f,pose.walk||0,(pose.extend||0)*181/height,pose.guard);
@@ -166,6 +173,15 @@
     const extend=active?Math.max(24,atk.move.reach*.54+f.p.reach):followThrough*57;
     const h=f.p.bodyHeight;
     c.save();
+    if(atk?.key==="azure" && atk.age<=atk.wind+19) {
+      for(let i=3;i>0;i--) {
+        c.globalAlpha=.10*(4-i);
+        draw(c,f.data,f.x-f.face*i*27,y,h,f.face,{tilt:lean,extend});
+      }
+      c.globalAlpha=1;c.strokeStyle="#9bfbff";c.lineWidth=2;
+      for(let i=0;i<5;i++)line(c,[[f.x-f.face*(48+i*17),y-h*.35-i*15],[f.x+f.face*(45+extend),y-h*.38-i*15]],"#6bf2ff88",2);
+      ellipse(c,f.x+f.face*h*.19,y-h*.77,6,2,"#eaffff",null);
+    }
     c.translate(-f.face*recoil*29,0);
     const shadow=c.createRadialGradient(f.x,ground,1,f.x,ground,82);
     shadow.addColorStop(0,"#120e1edf");shadow.addColorStop(1,"#120e1e00");
@@ -188,7 +204,8 @@
     }
     if(f.hp<=0) c.globalAlpha=.64;
     const squash=f.exhaustion?.88:f.guard?.955:evade && f.dodgeType==="spot"?.91:1;
-    draw(c,f.data,f.x,y-bob,h,f.face,{tilt:f.hp<=0?-.42:lean,squash,extend,guard:f.guard,walk:f.moving?Math.sin(t*.29)*9:0});
+    const strike=active?(atk.key==="heavy" || atk.key==="azure" && atk.age>=atk.wind+12?2:1):0;
+    draw(c,f.data,f.x,y-bob,h,f.face,{tilt:f.hp<=0?-.42:lean,squash,extend,guard:f.guard,walk:f.moving?Math.sin(t*.29)*9:0,strike});
     if(crush && (charge || active)) {
       const progress=charge?atk.age/atk.wind:1;
       const radius=12+progress*18;
@@ -216,6 +233,7 @@
     c.restore();
   }
   const accents = {
+    azure:["#082840","#80f7ff"],
     rush:["#40122f","#ff90bf"], crush:["#431d17","#ffd297"],
     counter:["#2c164d","#d6b7ff"], comet:["#0e324c","#9deaff"]
   };
@@ -225,7 +243,7 @@
     const move=D.moves[key];
     const [dark,bright]=accents[key];
     const direction=a.face;
-    const p=age/D.RULES.cutIn;
+    const p=age/(shot.duration || D.RULES.cutIn);
     const enter=Math.min(1,p*8);
     const exit=Math.min(1,(1-p)*9);
     const travel=animate?(1-enter)**2*205:0;
@@ -269,6 +287,13 @@
     const colors={ hit:"#ffe6ae",block:"#9ce1ff",break:"#ff896e",evade:"#80ead7",perfect:"#ffe393",counter:"#e6acff",miss:"#e9d2ee",special:"#ffd7f3",tired:"#ffad88",spent:"#eed0e3" };
     const labels={hit:"HIT",block:"GUARD",break:"ガード崩し",evade:"DODGE",perfect:"ジャスト回避",counter:"COUNTER",miss:"空振り",step:"",special:"",meter:"ゲージ不足",tired:"スタミナ切れ",spent:"使用上限"};
     for (const e of fx) {
+      if(e.azure && e.age<25) {
+        const t=e.age/25,x=e.point ?? e.b.x,cy=y-(e.lift||0)-e.b.p.bodyHeight*.45;
+        c.save();c.globalAlpha=1-t;c.translate(x,cy);c.scale(e.a.face,1);
+        line(c,[[-125*t,-65*t],[125*t,65*t]],"#eaffff",e.finisher?11:5);
+        line(c,[[-105*t,80*t],[105*t,-80*t]],"#66edff",e.finisher?8:3);
+        c.strokeStyle="#70f2ff";c.lineWidth=e.finisher?6:3;c.beginPath();c.ellipse(0,0,18+t*(e.finisher?170:70),12+t*65,-.4,0,Math.PI*2);c.stroke();c.restore();
+      }
       const age=e.age/36;
       const color=colors[e.type]||"#f4cfeb";
       const x=e.point ?? e.a.x;
@@ -312,14 +337,14 @@
     }
   }
   function impactFrame(c,fx,ground) {
-    const hit=fx.find(e=>e.crush && (e.type==="hit" || e.type==="break") && e.age<=2);
+    const hit=fx.find(e=>(e.crush || e.finisher) && (e.type==="hit" || e.type==="break") && e.age<=2);
     if(!hit) return;
     const x=hit.point, y=ground-(hit.lift || 0)-Math.min(126,hit.b.p.bodyHeight*.53);
     c.save();
     c.fillStyle="#1e1025b8";c.fillRect(0,0,1280,650);
     const flash=c.createRadialGradient(x,y,4,x,y,258);
-    flash.addColorStop(0,"#fffdf8");flash.addColorStop(.20,"#ffe1f4e8");
-    flash.addColorStop(.48,"#ff8bc0a8");flash.addColorStop(1,"#ff8bc000");
+    flash.addColorStop(0,"#fffdf8");flash.addColorStop(.20,hit.azure?"#d4ffffe8":"#ffe1f4e8");
+    flash.addColorStop(.48,hit.azure?"#63eaffa8":"#ff8bc0a8");flash.addColorStop(1,hit.azure?"#63eaff00":"#ff8bc000");
     c.fillStyle=flash;c.fillRect(0,0,1280,650);
     for(let i=0;i<14;i++) {
       const angle=Math.PI*2*i/14+.12;
