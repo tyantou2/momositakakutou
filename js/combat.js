@@ -72,7 +72,7 @@
       this.frame++;
       this.seconds=Math.max(0,LIMIT.round-this.frame*LIMIT.dt);
       const second=this.mode==="local"?p2:this.cpu(b,a);
-      const openings=[this.update(a,p1),this.update(b,second)].filter(Boolean);
+      const openings=[this.update(a,this.defenseCommand(a,p1)),this.update(b,this.defenseCommand(b,second))].filter(Boolean);
       this.separate();
       const hits=[this.strike(a,b),this.strike(b,a)].filter(Boolean);
       // A landed multi-hit special takes priority over a simultaneous counterhit.
@@ -93,7 +93,29 @@
         return;
       }
       this.cinematics=openings.filter(shot=>shot.a.attack?.key===shot.key);
+      // Snapshot after BOTH updates, so a pre-entered defense works on either side.
+      for (const shot of this.cinematics) {
+        if(!shot.a.attack.move.beats.length) continue;
+        const target=this.fighters[1-shot.a.index];
+        shot.a.attack.defense={
+          target,guard:target.guard,
+          dodge:target.dodge>0 && target.dodge>=target.dodgeInvThreshold,
+          perfect:target.perfectLock===0 && this.frame-target.dodgeInputFrame<RULES.perfectWindow,
+          resolved:false
+        };
+        target.buffer=null;
+      }
       if (this.cinematic) this.announce(this.cinematic);
+    }
+    incomingDefense(f) {
+      return this.fighters.find(other=>other.attack?.defense?.target===f && !other.attack.defense.resolved)?.attack.defense;
+    }
+    inputLocked(f) {
+      return !!this.cinematic || !!this.incomingDefense(f);
+    }
+    defenseCommand(f,cmd) {
+      const defense=this.incomingDefense(f);
+      return defense?{axis:0,guard:defense.guard}:cmd;
     }
     announce(shot) {
       const {a,key}=shot;
@@ -115,7 +137,7 @@
       return true;
     }
     capture(f,cmd) {
-      if (cmd.action && !f.exhaustion) f.buffer={action:cmd.action,frames:9,inputFrame:this.frame};
+      if (cmd.action && !f.exhaustion && !this.inputLocked(f)) f.buffer={action:cmd.action,frames:9,inputFrame:this.frame};
     }
     grant(f,amount) {
       if (this.mode==="practice" || f.used<RULES.superLimit) f.meter=Math.min(100,f.meter+amount*(f.used===0?1:.38));
@@ -257,6 +279,8 @@
       const attack=a.attack;
       if (!attack || !attack.move.beats.includes(attack.age-attack.wind)) return null;
       const {move}=attack;
+      const defense=attack.defense && !attack.defense.resolved?attack.defense:null;
+      if(defense) defense.resolved=true;
       if (attack.connected===b) {
         return {kind:"hit",a,b,move,point:b.x-a.face*b.p.hurt*.54,lift:b.lift};
       }
@@ -266,14 +290,14 @@
       if(distance>reach(a,b,move) || y < -24 || y > b.p.bodyHeight*.81+23) {
         return {kind:"miss",a,b,move,point:a.x+a.face*(move.reach+a.p.reach),lift:a.lift};
       }
-      if (b.dodge>=b.dodgeInvThreshold && b.dodge>0) {
-        const perfect=b.perfectLock===0 && this.frame-b.dodgeInputFrame<RULES.perfectWindow;
+      if (defense?defense.dodge:b.dodge>=b.dodgeInvThreshold && b.dodge>0) {
+        const perfect=defense?defense.perfect:b.perfectLock===0 && this.frame-b.dodgeInputFrame<RULES.perfectWindow;
         return {kind:perfect?"perfect":"evade",a,b,move,point:b.x,lift:b.lift};
       }
       if (b.attack?.key==="counter" && b.attack.age<=20 && !b.attack.spent && distance<=reach(b,a,D.moves.counter)) {
         return {kind:"counter",a:b,b:a,move:D.moves.counter,point:a.x,lift:a.lift};
       }
-      return {kind:b.guard?"block":"hit",a,b,move,point:b.x-a.face*b.p.hurt*.54,lift:b.lift};
+      return {kind:(defense?defense.guard:b.guard)?"block":"hit",a,b,move,point:b.x-a.face*b.p.hurt*.54,lift:b.lift};
     }
     apply({kind,a,b,move,point,lift}) {
       if (kind==="miss") {

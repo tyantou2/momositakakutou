@@ -1,10 +1,11 @@
 (function(D) {
   "use strict";
   const CLIP_END=3.75;
+  const TITLE_TIME=800;
   const LOAD_LIMIT=450;
   const STALL_LIMIT=500;
   const video=document.getElementById("crush-video");
-  let shot=null, state="idle", lastTime=0, stalled=0, clock=null, suspended=false;
+  let shot=null, state="idle", lastTime=0, stalled=0, clock=null, suspended=false, titleTime=0;
   function eligible(candidate) {
     return candidate?.a.data.id==="momokage" && candidate.key==="crush";
   }
@@ -16,7 +17,7 @@
     suspended=false;
   }
   function fallback() {
-    if(state==="idle" || state==="done") return;
+    if(state==="idle" || state==="done" || state==="title") return;
     state="fallback";
     video.pause();
   }
@@ -32,13 +33,13 @@
     stop();
     if(!eligible(candidate) || !animate) return;
     shot=candidate;
-    state="loading";
+    state="title";
+    titleTime=0;
     lastTime=0;
     stalled=0;
     try {
       video.currentTime=0;
       video.playbackRate=1;
-      play(candidate);
     } catch { fallback(); }
   }
   function update(candidate,paused,now) {
@@ -52,10 +53,18 @@
     }
     if(suspended) {
       suspended=false;
-      play(shot);
+      if(state!=="title") play(shot);
     }
     const elapsed=clock===null?0:Math.min(100,now-clock);
     clock=now;
+    if(state==="title") {
+      titleTime+=elapsed;
+      if(titleTime>=TITLE_TIME) {
+        state="loading";
+        play(shot);
+      }
+      return "hold";
+    }
     if(video.error) fallback();
     if(state==="fallback") return "fallback";
     if(video.ended || video.currentTime>=CLIP_END) {
@@ -75,10 +84,21 @@
     return "hold";
   }
   function holds(candidate) {
+    return candidate===shot && ["title","loading","playing"].includes(state);
+  }
+  function isVideo(candidate) {
     return candidate===shot && (state==="loading" || state==="playing");
   }
   function draw(c,candidate) {
-    if(!holds(candidate) || video.readyState<2 || !video.videoWidth) return false;
+    if(!holds(candidate)) return false;
+    if(state==="title") {
+      D.Art.cinematic(c,{...candidate,age:Math.min(54,titleTime/TITLE_TIME*58)},true);
+      return true;
+    }
+    if(video.readyState<2 || !video.videoWidth) {
+      D.Art.cinematic(c,{...candidate,age:54},true);
+      return true;
+    }
     const scale=Math.min(1280/video.videoWidth,650/video.videoHeight);
     const width=video.videoWidth*scale, height=video.videoHeight*scale;
     c.save();
@@ -103,5 +123,5 @@
     return true;
   }
   video.addEventListener("error",fallback);
-  D.VideoCutIn={start,stop,update,holds,draw};
+  D.VideoCutIn={start,stop,update,holds,isVideo,draw};
 })(Dojo);

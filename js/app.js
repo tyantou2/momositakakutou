@@ -346,7 +346,8 @@
     dialog("遊び方",content=>{
       content.append(node("p","note","弱パンチは出が速く、強パンチは遠くまで届きます。相手の溜めを見てガードか回避を選び、空振りの隙に反撃しましょう。"),makeKeys(0),makeKeys(1),
         node("p","note","後ろ回避は間合いを離し、その場回避は近距離を保ちます。ジャンプの着地には約0.2秒の隙があります。ガードを構えるとスタミナが少しずつ減り、不足時は約1.5秒間スタンします。連続必殺技は初撃が命中すると最後までつながります。"),
-        node("p","note","攻撃が当たる直前の約0.05秒以内に回避を入力するとジャスト回避。相手の攻撃が中断され、約0.67秒の反撃の隙が生まれます。成功後2秒間は通常の回避になります。"),
+        node("p","note","通常技が当たる直前の約0.05秒以内に回避を入力するとジャスト回避。相手の攻撃が中断され、約0.67秒の反撃の隙が生まれます。成功後2秒間は通常の回避になります。"),
+        node("p","note","必殺技の技名・動画演出中は双方が停止します。防御は必殺技発動時点の状態で判定し、演出を見てからのガード・回避は間に合いません。発動前からのガードと無敵時間内の回避が有効で、発動直前の約0.05秒以内の回避ならジャスト回避を狙えます。"),
         node("p","note","必殺技はゲージ満タンで発動し、1試合で最大2回。2分で決着がつかなければ、残り体力の割合で判定します。練習に時間・必殺回数の制限はありません。Escで一時停止できます。"));
       const credits=node("p","note","ゲーム内ボイス　桃陰＝VOICEVOX:†聖騎士 紅桜† ／ もものすけ＝VOICEVOX:猫使ビィ");
       credits.id="voice-credit";content.append(credits);
@@ -448,7 +449,7 @@
     last=now;
     if(screen!=="battle" || !match) return;
     const videoState=D.VideoCutIn.update(match.cinematic,paused,now);
-    $("fight-arena").classList.toggle("video-cinematic",D.VideoCutIn.holds(match.cinematic));
+    $("fight-arena").classList.toggle("video-cinematic",D.VideoCutIn.isVideo(match.cinematic));
     if(videoState==="done" && !paused) {
       D.VideoCutIn.stop();
       match.endCinematic(match.cinematic,true);
@@ -537,6 +538,7 @@
     const index=D.controls.findIndex(map=>Object.values(map).includes(e.code));
     if(index===1 && mode!=="local") return;
     e.preventDefault();
+    if(match.inputLocked(match.fighters[index])) return;
     keys.add(e.code);
     if(e.repeat) return;
     const map=D.controls[index];
