@@ -1,6 +1,6 @@
 (function(D) {
   "use strict";
-  const CLIP_END=.9;
+  const CLIP_END=3.75;
   const LOAD_LIMIT=450;
   const STALL_LIMIT=500;
   const video=document.getElementById("crush-video");
@@ -96,7 +96,7 @@
       return false;
     }
     // The last few frames brighten into the return to the live camera.
-    c.globalAlpha=Math.max(0,(video.currentTime-.80)/.10)*.65;
+    c.globalAlpha=Math.max(0,(video.currentTime-(CLIP_END-.12))/.12)*.65;
     c.fillStyle="#fff1f7";
     c.fillRect(0,0,1280,650);
     c.restore();

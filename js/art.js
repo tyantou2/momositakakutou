@@ -155,17 +155,18 @@
   function fighter(c,f,t,ground) {
     const atk=f.attack;
     const recoil=f.impact?Math.sin((18-f.impact)/18*Math.PI):0;
-    const y=ground-f.lift-recoil*12;
+    const y=ground-f.lift-recoil*18;
     const bob=f.lift ? 0 : f.moving ? Math.abs(Math.sin(t*.24+f.index))*6 : Math.sin(t*.075+f.index)*2;
     const active=atk && (atk.move.beats.some(beat=>Math.abs(atk.age-atk.wind-beat)<=4) || atk.spent && atk.age<32);
     const charge=atk && !active && atk.age<atk.wind;
     const evade=f.dodge>0;
     const crush=f.data.id==="momokage" && atk?.key==="crush";
     const followThrough=crush && atk.age>=atk.wind?Math.max(0,1-(atk.age-atk.wind)/18):0;
-    const lean=recoil?-.13-recoil*.20:active?.14:charge?-.11:evade?-.20:f.exhaustion?.22:f.stun?-.13:followThrough*.14;
+    const lean=recoil?-.13-recoil*.30:active?.14:charge?-.11:evade?-.20:f.exhaustion?.22:f.stun?-.13:followThrough*.14;
     const extend=active?Math.max(24,atk.move.reach*.54+f.p.reach):followThrough*57;
     const h=f.p.bodyHeight;
     c.save();
+    c.translate(-f.face*recoil*29,0);
     const shadow=c.createRadialGradient(f.x,ground,1,f.x,ground,82);
     shadow.addColorStop(0,"#120e1edf");shadow.addColorStop(1,"#120e1e00");
     c.globalAlpha=1-f.lift/250;
@@ -277,10 +278,10 @@
       const impact=["hit","block","break","counter","perfect"].includes(e.type);
       if(e.crush && age<.75) {
         c.save();c.translate(x,height);c.scale(e.a.face,1);
-        const ring=22+age*185;
+        const ring=28+age*240;
         c.globalAlpha=(1-age/.75)*.85;
-        c.shadowColor="#ff93c8";c.shadowBlur=22;
-        c.strokeStyle="#ffa2ce";c.lineWidth=13*(1-age);
+        c.shadowColor="#ff93c8";c.shadowBlur=28;
+        c.strokeStyle="#ffa2ce";c.lineWidth=17*(1-age);
         c.beginPath();c.ellipse(0,0,ring,ring*.60,0,0,Math.PI*2);c.stroke();
         c.strokeStyle="#fff2f4";c.lineWidth=5*(1-age);
         c.beginPath();c.ellipse(9,0,ring*.76,ring*.46,0,0,Math.PI*2);c.stroke();
@@ -310,5 +311,21 @@
       c.restore();
     }
   }
-  D.Art={draw,portrait,stage,fighter,cinematic,effects};
+  function impactFrame(c,fx,ground) {
+    const hit=fx.find(e=>e.crush && (e.type==="hit" || e.type==="break") && e.age<=2);
+    if(!hit) return;
+    const x=hit.point, y=ground-(hit.lift || 0)-Math.min(126,hit.b.p.bodyHeight*.53);
+    c.save();
+    c.fillStyle="#1e1025b8";c.fillRect(0,0,1280,650);
+    const flash=c.createRadialGradient(x,y,4,x,y,258);
+    flash.addColorStop(0,"#fffdf8");flash.addColorStop(.20,"#ffe1f4e8");
+    flash.addColorStop(.48,"#ff8bc0a8");flash.addColorStop(1,"#ff8bc000");
+    c.fillStyle=flash;c.fillRect(0,0,1280,650);
+    for(let i=0;i<14;i++) {
+      const angle=Math.PI*2*i/14+.12;
+      line(c,[[x+Math.cos(angle)*32,y+Math.sin(angle)*26],[x+Math.cos(angle)*(i%2?154:224),y+Math.sin(angle)*(i%2?105:158)]],"#fff1fa",i%2?3:7);
+    }
+    c.restore();
+  }
+  D.Art={draw,portrait,stage,fighter,cinematic,effects,impactFrame};
 })(Dojo);

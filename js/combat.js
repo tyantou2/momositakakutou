@@ -99,8 +99,17 @@
       const {a,key}=shot;
       this.emit("special",a,null,{key});
     }
-    endCinematic(shot) {
-      if (this.cinematic!==shot) return false;
+    endCinematic(shot,prepared=false) {
+      if (!shot || this.cinematic!==shot) return false;
+      const attack=shot.a.attack;
+      if(prepared && shot.a.data.id==="momokage" && shot.key==="crush" && attack?.key==="crush") {
+        // The film supplies the wind-up. Preserve its total travel in the final lunge.
+        const remaining=attack.wind-attack.age;
+        const lunge=Math.min(remaining,10);
+        attack.stepScale=remaining/lunge;
+        attack.age=attack.wind-lunge;
+        this.emit("crushRelease",shot.a);
+      }
       this.cinematics.shift();
       if (this.cinematic) this.announce(this.cinematic);
       return true;
@@ -166,7 +175,7 @@
       }
       if (f.attack) {
         f.attack.age++;
-        if (f.attack.age<=f.attack.wind) f.x+=f.face*f.attack.move.step*LIMIT.dt;
+        if (f.attack.age<=f.attack.wind) f.x+=f.face*f.attack.move.step*(f.attack.stepScale || 1)*LIMIT.dt;
       }
       if(f.lift>0 || f.vy>0) {
         f.vy-=RULES.gravity*LIMIT.dt;

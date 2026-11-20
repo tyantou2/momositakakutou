@@ -451,22 +451,22 @@
     $("fight-arena").classList.toggle("video-cinematic",D.VideoCutIn.holds(match.cinematic));
     if(videoState==="done" && !paused) {
       D.VideoCutIn.stop();
-      match.endCinematic(match.cinematic);
+      match.endCinematic(match.cinematic,true);
       returnFlash=8;
-      clearKeys();
+      queue.fill(null);
     }
     if(!paused && match.phase!=="over") {
       if(D.VideoCutIn.holds(match.cinematic)) {
         accumulator=0;
-        clearKeys();
+        queue.fill(null);
       } else accumulator+=elapsed;
       while(accumulator>=1000/60 && match.phase!=="over" && !D.VideoCutIn.holds(match.cinematic)) {
         match.tick(command(0),command(1));
         for(const event of match.drain()) {
           if(event.type==="special") D.VideoCutIn.start(match.cinematic,settings.motion);
-          D.Audio.event(event);
+          D.Audio.event(event,D.VideoCutIn.holds(match.cinematic));
           if(event.type==="over"){result();continue;}
-          if(!["fight","swing","step","jump","special"].includes(event.type)) fx.push({...event,age:0});
+          if(!["fight","swing","step","jump","special","crushRelease"].includes(event.type)) fx.push({...event,age:0});
           if(event.heavy) shake=event.type==="block"?3:7;
         }
         if(!match.cinematic) fx=fx.filter(e=>++e.age<36);
@@ -483,6 +483,7 @@
     D.Art.stage(context,542);
     for(const f of match.fighters) D.Art.fighter(context,f,match.frame,542);
     D.Art.effects(context,fx,542);
+    if(settings.motion && !match.cinematic) D.Art.impactFrame(context,fx,542);
     if(match.cinematic && !D.VideoCutIn.draw(context,match.cinematic)) D.Art.cinematic(context,match.cinematic,settings.motion);
     context.restore();
     if(returnFlash) {

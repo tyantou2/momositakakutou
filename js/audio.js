@@ -76,19 +76,24 @@
     callout(a,"start");
     introTimer=setTimeout(()=>callout(b,"start"),characterVoice(a,"start")?1430:0);
   }
-  function event(e) {
+  function event(e,videoCutIn=false) {
     if (muted) return;
 
     switch(e.type) {
       case "fight": tone(415,622,.19,.13,"triangle"); break;
       case "swing": thump(.11,e.key==="heavy"?.11:.064,1800); callout(e.a,"attack"); break;
-      case "special": tone(220,659,.26,.14,"triangle"); tone(440,932,.18,.09,"sine",.08); callout(e.a,"special"); break;
+      case "special":
+        if(e.a.data.id==="momokage" && e.key==="crush" && videoCutIn) {
+          tone(80,210,.80,.11,"sine");thump(.18,.10,1000);break;
+        }
+        tone(220,659,.26,.14,"triangle");tone(440,932,.18,.09,"sine",.08);callout(e.a,"special");break;
+      case "crushRelease": thump(.13,.12,1400);tone(145,360,.13,.11,"triangle");callout(e.a,"special");break;
       case "hit":
       case "break":
       case "counter":
         thump(e.crush?.23:e.heavy?.2:.105,.35,2150);
         tone(e.heavy?137:174,48,e.heavy?.18:.09,.28,"triangle");
-        if(e.crush) tone(88,32,.29,.24,"sine");
+        if(e.crush) { tone(76,28,.34,.28,"sine");tone(240,70,.11,.10,"triangle"); }
         callout(e.b,"damage");break;
       case "block": thump(.1,.19,870);tone(790,480,.1,.14,"triangle");break;
       case "step": thump(.10,.080,e.key==="back"?1340:880); break;
