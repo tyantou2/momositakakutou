@@ -1,5 +1,6 @@
 (function(D) {
   "use strict";
+  const CLIP_START=.30;
   const CLIP_END=3.75;
   const TITLE_TIME=800;
   const LOAD_LIMIT=450;
@@ -35,10 +36,11 @@
     shot=candidate;
     state="title";
     titleTime=0;
-    lastTime=0;
+    lastTime=CLIP_START;
     stalled=0;
     try {
-      video.currentTime=0;
+      // Skip the opening still; seek during the name card, before showing the film.
+      video.currentTime=CLIP_START;
       video.playbackRate=1;
     } catch { fallback(); }
   }
@@ -95,7 +97,7 @@
       D.Art.cinematic(c,{...candidate,age:Math.min(54,titleTime/TITLE_TIME*58)},true);
       return true;
     }
-    if(video.readyState<2 || !video.videoWidth) {
+    if(video.readyState<2 || !video.videoWidth || video.seeking || video.currentTime<CLIP_START) {
       D.Art.cinematic(c,{...candidate,age:54},true);
       return true;
     }
