@@ -4,13 +4,14 @@
   const elements=Object.fromEntries(Object.values(D.cutins).map(clip=>[clip.element,document.getElementById(clip.element)]));
   const cached=document.createElement("canvas");cached.width=1280;cached.height=650;
   const cache=cached.getContext("2d");let hasFrame=false;
-  let shot=null,clip=null,video=null,state="idle",lastTime=0,stalled=0,clock=null,suspended=false,titleTime=0,cueSent=false,dialogueSent=false;
-  function stop() {video?.pause();shot=null;clip=null;state="idle";clock=null;suspended=false;hasFrame=false;}
+  let shot=null,clip=null,video=null,state="idle",lastTime=0,stalled=0,clock=null,suspended=false,titleTime=0,cueSent=false,dialogueSent=false,playEpoch=0;
+  function pauseVideo(){playEpoch++;video?.pause();}
+  function stop() {pauseVideo();shot=null;clip=null;state="idle";clock=null;suspended=false;hasFrame=false;}
   function fallback() {
     if(["idle","done","title"].includes(state))return;
-    state="fallback";video?.pause();
+    state="fallback";pauseVideo();
   }
-  function play(current) {try{video.play()?.catch(()=>{if(shot===current && !suspended)fallback();});}catch{fallback();}}
+  function play(current) {const ticket=++playEpoch;try{video.play()?.catch(error=>{if(shot===current && ticket===playEpoch && !suspended && error?.name!=="AbortError")fallback();});}catch{fallback();}}
   function start(candidate,animate=true) {
     stop();const definition=D.movieFor(candidate);
     if(!definition || !animate)return;
@@ -22,7 +23,7 @@
   function update(candidate,paused,now) {
     if(shot && candidate!==shot)stop();
     if(!shot || state==="fallback")return "fallback";
-    if(paused){if(!suspended)video.pause();suspended=true;clock=null;return "hold";}
+    if(paused){if(!suspended)pauseVideo();suspended=true;clock=null;return "hold";}
     if(suspended){suspended=false;if(state!=="title")play(shot);}
     const elapsed=clock===null?0:Math.min(100,now-clock);clock=now;
     if(state==="title") {
@@ -34,7 +35,7 @@
     if(state==="fallback")return "fallback";
     if(!dialogueSent&&clip.dialogue&&video.currentTime>=clip.dialogue.time){dialogueSent=true;D.Audio.dialogueVoice(shot);}
     if(!cueSent && video.currentTime>=clip.end-clip.voiceLead){cueSent=true;D.Audio.superVoice(shot);}
-    if(video.ended || video.currentTime>=clip.end){state="done";video.pause();return "done";}
+    if(video.ended || video.currentTime>=clip.end){state="done";pauseVideo();return "done";}
     if(video.currentTime>lastTime+.001){lastTime=video.currentTime;stalled=0;state="playing";}else stalled+=elapsed;
     if(stalled>(state==="loading"?LOAD_LIMIT:STALL_LIMIT)){fallback();return "fallback";}
     return "hold";
@@ -62,14 +63,14 @@
     if(!shot || shot.serial!==candidate.serial || shot.key!==candidate.key)start(candidate,true);else shot=candidate;
     titleTime=candidate.age/60*1000;
     if(state==="fallback")return;
-    if(titleTime<clip.title){state="title";suspended=true;video.pause();return;}
+    if(titleTime<clip.title){state="title";suspended=true;pauseVideo();return;}
     if(video.error){state="loading";fallback();return;}
     const target=Math.min(clip.end-.025,clip.start+(titleTime-clip.title)/1000);
     if(state==="title"){state="loading";try{video.currentTime=target;}catch{fallback();return;}}
     if(video.readyState>=2){if(!video.seeking && Math.abs(video.currentTime-target)>.12)video.currentTime=target;state="playing";}
     suspended=!running || target>=clip.end-.026;
-    if(suspended)video.pause();else if(video.paused)play(candidate);
+    if(suspended)pauseVideo();else if(video.paused)play(candidate);
   }
   function canDialogue(event){return !!shot&&event.serial===shot.serial&&event.key===shot.key&&state==="playing"&&hasFrame&&video.readyState>=2&&!video.error&&Math.abs(video.currentTime-clip.dialogue.time)<.36;}
-  D.VideoCutIn={start,stop,update,holds,isVideo,draw,online,canDialogue,dialogueOffset:()=>clip?.dialogue?Math.max(0,video.currentTime-clip.dialogue.time):0};
+  D.VideoCutIn={start,stop,update,holds,isVideo,draw,online,canDialogue,dialogueOffset:()=>clip?.dialogue?Math.max(0,video.currentTime-clip.dialogue.time):0,status:()=>({state,hasFrame,time:video?.currentTime||0})};
 })(Dojo);

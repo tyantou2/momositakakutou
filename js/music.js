@@ -8,7 +8,7 @@
   function levels(){
     if(!ctx)return;const now=ctx.currentTime,duck=now<duckUntil?.22:1,base=volume*.34*duck;
     if(active&&returnAt>now){
-      battleGain.gain.cancelScheduledValues(now);battleGain.gain.setValueAtTime(0,now);battleGain.gain.setTargetAtTime(volume*.34,Math.max(now,returnAt-.42),.14);
+      battleGain.gain.cancelScheduledValues(now);battleGain.gain.setValueAtTime(0,now);battleGain.gain.setTargetAtTime(base,Math.max(now,returnAt-.42),.14);
       cueGain.gain.cancelScheduledValues(now);cueGain.gain.setValueAtTime(base,now);cueGain.gain.linearRampToValueAtTime(0,returnAt);
     }else{ramp(battleGain,active&&serial===null?base:0,.32);ramp(cueGain,active?base:0,.1);}
   }

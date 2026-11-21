@@ -26,7 +26,7 @@ test('music keeps one loop, deduplicates super cues, ducks speech and fades back
  const {ctx,nodes,gains,M}=musicHarness();await M.battle();assert.equal(nodes.length,1);assert.equal(nodes[0].loop,true);
  const shot={serial:1,a:{index:0,data:D.cast[0]},key:'crush',age:0};await M.cutin(shot);await M.cutin({...shot});assert.equal(nodes.length,2);assert.ok(gains[0].events.some(e=>e[0]==='target'&&e[1]===0));
  M.duck(.5);assert.equal(M.status().duckUntil,.5);assert.ok(gains[1].events.some(e=>e[0]==='target'&&e[1]<.1));
- ctx.currentTime=.6;M.update(shot);assert.equal(M.status().duckUntil,0);M.release({...shot,prepared:true});assert.ok(M.status().returnAt>.6);ctx.currentTime=3;M.update(null);assert.equal(M.status().returnAt,0);assert.equal(M.status().serial,null);
+ ctx.currentTime=.6;M.update(shot);assert.equal(M.status().duckUntil,0);M.release({...shot,prepared:true});assert.ok(M.status().returnAt>.6);M.duck(1);assert.ok(Math.abs(gains[0].events.at(-1)[1]-.65*.34*.22)<1e-9);ctx.currentTime=3;M.update(null);assert.equal(M.status().returnAt,0);assert.equal(M.status().serial,null);
  await M.battle();assert.ok(nodes[0].stopped!==undefined);assert.equal(nodes.filter(n=>n.loop&&n.stopped===undefined).length,1);
  M.stop(0);assert.equal(M.status().active,false);assert.ok(nodes.every(n=>n.stopped!==undefined));
 });
@@ -35,4 +35,12 @@ test('a music download finishing after leaving battle cannot start an orphaned t
  // A new isolated harness delays the decode, then leaves the screen before it resolves.
  const ctx={currentTime:0,createGain:()=>({connect(){},gain:{cancelScheduledValues(){},setTargetAtTime(){},setValueAtTime(){},linearRampToValueAtTime(){}}}),createBufferSource(){throw Error('orphaned start');}};
  const dojo={...D,Audio:{loadBuffer:()=>new Promise(r=>resolve=r)}};vm.runInNewContext(fs.readFileSync(require.resolve('../js/music.js'),'utf8'),{Dojo:dojo});dojo.Music.attach(ctx,{});const pending=dojo.Music.battle();dojo.Music.stop(0);resolve({duration:70});await pending;assert.equal(dojo.Music.status().battle,false);
+});
+test('an interrupted pending video play cannot turn a later online resume into a media failure',async()=>{
+ const pending=[];const video={paused:true,currentTime:0,readyState:4,seeking:false,videoWidth:1280,videoHeight:720,play(){this.paused=false;return new Promise((_,reject)=>pending.push(reject));},pause(){this.paused=true;},addEventListener(){}};
+ const dojo={...D},document={getElementById:()=>video,createElement:()=>({getContext:()=>({})})};vm.runInNewContext(fs.readFileSync(require.resolve('../js/cutin-video.js'),'utf8'),{Dojo:dojo,document});
+ const shot={serial:2,a:{data:D.cast[0],index:0},key:'crush',age:49};dojo.VideoCutIn.online(shot,true,true);assert.equal(pending.length,1);
+ dojo.VideoCutIn.online(shot,true,false);dojo.VideoCutIn.online(shot,true,true);assert.equal(pending.length,2);
+ pending[0](Object.assign(new Error('pause interrupted play'),{name:'AbortError'}));await Promise.resolve();assert.equal(dojo.VideoCutIn.holds(shot),true);
+ pending[1](Object.assign(new Error('play blocked'),{name:'NotAllowedError'}));await Promise.resolve();assert.equal(dojo.VideoCutIn.holds(shot),false);
 });
