@@ -30,7 +30,13 @@
   const initialOptions=read(optionKey,{});
   const settings = {
     sound:initialOptions.sound!==false,
-    motion:initialOptions.motion ?? !matchMedia("(prefers-reduced-motion: reduce)").matches
+    motion:initialOptions.motion ?? !matchMedia("(prefers-reduced-motion: reduce)").matches,
+    bgmVolume:Number.isFinite(initialOptions.bgmVolume)?D.clamp(initialOptions.bgmVolume,0,1):.65,
+    sfxVolume:Number.isFinite(initialOptions.sfxVolume)?D.clamp(initialOptions.sfxVolume,0,1):.8,
+    voiceVolume:Number.isFinite(initialOptions.voiceVolume)?D.clamp(initialOptions.voiceVolume,0,1):1,
+    touchMode:["auto","on","off"].includes(initialOptions.touchMode)?initialOptions.touchMode:"auto",
+    touchSize:Number.isFinite(initialOptions.touchSize)?D.clamp(initialOptions.touchSize,90,120):100,
+    touchOpacity:Number.isFinite(initialOptions.touchOpacity)?D.clamp(initialOptions.touchOpacity,55,100):90
   };
   let mode="cpu", difficulty="normal", dummy="idle", screen="lobby", slot=0, editorTab="appearance";
   let selected=D.cast.slice(0,2).map(f=>f.id);
@@ -47,6 +53,7 @@
   const getFighter = i => mode==="online" && i===1 && network.remoteFighter?network.remoteFighter:roster().find(f=>f.id===selected[i]) || D.cast[i];
   const sideLabel = i => mode==="online"?(i===(screen==="battle"?onlineSide:0)?"YOU":"相手"):i===0 ? "1P" : mode==="local" ? "2P" : mode==="cpu" ? "CPU" : "DUMMY";
   const inBattle = () => screen==="battle" && match && !paused && match.phase!=="over";
+  D.Touch.setup({canUse:()=>inBattle()&&!$("dialog").open,locked:()=>!!match?.inputLocked(match.fighters[mode==="online"?onlineSide:0]),gesture:()=>D.Audio.init()});
   function fresh() {
     return { ...D.normalize(D.presets.balanced), name:"" };
   }
@@ -82,16 +89,19 @@
   function updateOptions() {
     try { localStorage.setItem(optionKey,JSON.stringify(settings)); } catch {}
     D.Audio.mute(!settings.sound);
+    D.Audio.configure(settings);D.Touch.configure(settings);D.Touch.show(screen==="battle",mode);
     drawSound();
   }
   function show(page) {
     if (page!=="battle" && screen==="battle") {
       if(mode==="online"){network.close();onlineEnded=true;}
       D.VideoCutIn.stop();
+      D.Music.stop(0);D.Audio.setPaused(true);
       D.Audio.stopVoices();match=null;paused=false;clearKeys();
     }
     if (page!==screen) D.Audio.stopVoices();
     screen=page;
+    D.Touch.show(page==="battle",mode);
     for (const id of ["lobby","editor","battle"]) $(id).hidden=id!==page;
     $("tab-match").classList.toggle("active",page!=="editor");
     $("tab-editor").classList.toggle("active",page==="editor");
@@ -131,7 +141,8 @@
     $("online-panel").hidden=mode!=="online";
     $("slot-toggle").hidden=mode==="online";
     $("start-label").textContent=mode==="online"?(network.localReady?"相手の準備待ち":"準備完了"):mode==="practice"?"練習開始":"試合開始";
-    $("start").disabled=mode==="online" && (network.status!=="connected" || !network.remoteFighter || network.localReady);
+    $("start").disabled=mode==="online" && (network.status!=="connected" || !network.remoteFighter || network.localReady) || mode==="local" && D.Touch.enabled() && innerWidth<1100;
+    $("mobile-local-note").hidden=mode!=="local"||!D.Touch.enabled();
     if(mode==="online"){slot=0;paintOnline();}
     const list=$("roster");
     list.replaceChildren();
@@ -347,7 +358,7 @@
     return group;
   }
   function dialog(title, attach) {
-    if(inBattle()) togglePause();
+    clearKeys();if(inBattle()&&mode!=="online")togglePause();
     $("dialog-title").textContent=title;
     const content=$("dialog-content");content.replaceChildren();attach(content);
     $("dialog").showModal();
@@ -365,16 +376,27 @@
   }
   function options() {
     dialog("設定",content=>{
+      if(mode==="online"&&screen==="battle")content.append(node("p","note","オンライン対戦は、設定を開いている間も進みます。"));
       for(const [key,label] of [["sound","サウンド"],["motion","画面揺れ・カットインの動き"]]) {
         const row=node("label","setting-row",label), checkbox=node("input");
         checkbox.type="checkbox";checkbox.checked=settings[key];
         checkbox.addEventListener("change",()=>{settings[key]=checkbox.checked;updateOptions();});
         row.append(checkbox);content.append(row);
       }
+      for(const [key,label,min,max]of [["bgmVolume","BGM音量",0,100],["sfxVolume","効果音音量",0,100],["voiceVolume","ボイス音量",0,100],["touchSize","タッチボタンの大きさ",90,120],["touchOpacity","タッチボタンの濃さ",55,100]]) {
+        const row=node("label","setting-range",label),value=node("output"),input=node("input");input.type="range";input.min=min;input.max=max;input.dataset.setting=key;input.setAttribute("aria-label",label);
+        const audio=key.endsWith("Volume");input.value=audio?Math.round(settings[key]*100):settings[key];value.textContent=input.value+"%";
+        input.addEventListener("input",()=>{settings[key]=Number(input.value)/(audio?100:1);value.textContent=input.value+"%";updateOptions();});row.append(value,input);content.append(row);
+      }
+      const touch=node("label","setting-row","タッチ操作");touch.append(choose([["auto","端末に合わせる"],["on","表示する"],["off","表示しない"]],settings.touchMode,v=>{settings.touchMode=v;updateOptions();if(screen==="lobby")paintLobby();}));content.append(touch);
+      const credits=node("div","music-credits");credits.append(node("strong","","音楽クレジット"));
+      for(const track of Object.values(D.Music.tracks)){const p=node("p","",track.title+" — "+track.artist+" / ");const a=node("a","","配布元");a.href=track.source;a.target="_blank";a.rel="noopener";p.append(a);credits.append(p);}
+      const license=node("a","","CC BY 4.0（抜粋・ループ編集・音量調整）");license.href="https://creativecommons.org/licenses/by/4.0/";license.target="_blank";license.rel="noopener";credits.append(license);content.append(credits);
     });
   }
   function clearKeys() {
     keys.clear();queue.fill(null);
+    D.Touch.clear();
   }
   function paintOnline() {
     $("online-message").textContent=network.message || "部屋を作って招待するか、相手から届いたコードで参加してください。";
@@ -387,10 +409,12 @@
   function onlineError(message,wasBattle) {
     if(wasBattle && screen==="battle" && match && !onlineEnded) {
       onlineEnded=true;paused=true;clearKeys();D.VideoCutIn.stop();match.cinematics=[];
+      D.Music.stop(0);D.Audio.setPaused(true);
       overlay("CONNECTION","対戦を終了しました",message,[["対戦準備へ",()=>show("lobby"),true]]);
     }else if(wasBattle && onlineEnded)notify(message);
   }
   function start(options) {
+    D.Audio.setPaused(false);D.Audio.init();
     if(mode==="online" && !options?.fighters){network.setFighter(getFighter(0));network.ready();return;}
     D.VideoCutIn.stop();returnFlash=0;
     D.Audio.stopVoices();D.Audio.init();
@@ -420,12 +444,14 @@
       group.append(node("small","spell-label"),node("div","fighter-state"));
     }
     show("battle");hud();D.Audio.intro(match.fighters);
+    D.Music.battle();
     $("pause").focus({preventScroll:true});
   }
   function command(i) {
     const map=D.controls[i], action=queue[i];
     queue[i]=null;
-    return {axis:Number(keys.has(map.right))-Number(keys.has(map.left)),guard:keys.has(map.guard),action};
+    const touch=i===0?D.Touch.sample(!action):{axis:0,guard:false,action:null};
+    return {axis:D.clamp(Number(keys.has(map.right))-Number(keys.has(map.left))+touch.axis,-1,1),guard:keys.has(map.guard)||touch.guard,action:action||touch.action};
   }
   function status(f) {
     if(f.exhaustion) return ["exhausted","スタミナ切れ  "+(Math.ceil(f.exhaustion/6)/10).toFixed(1)+"秒"];
@@ -446,6 +472,8 @@
     return ["",""];
   }
   function hud() {
+    const self=match.fighters[mode==="online"?onlineSide:0];D.Touch.update(self.meter===100&&(mode==="practice"||self.used<D.RULES.superLimit));
+    $("audio-resume").hidden=!settings.sound||paused||D.Audio.status().state==="running";
     if(mode==="online")$("net-status").textContent=network.core?(network.core.canAdvance()?"YOU = "+(onlineSide+1)+"P　"+(network.rtt?"接続 "+network.rtt+"ms":"接続を計測中"):"通信待ち…　回線を同期しています"):"接続終了";
     const seconds=Math.ceil(match.seconds);
     $("time").textContent=mode==="practice"?"∞":Math.floor(seconds/60)+":"+String(seconds%60).padStart(2,"0");
@@ -480,6 +508,9 @@
     const elapsed=Math.min(80,now-last);
     last=now;
     if(screen!=="battle" || !match) return;
+    const desired=Math.round(Math.min(1280,Math.max(320,$("ring").getBoundingClientRect().width*Math.min(devicePixelRatio||1,2))));
+    if($("ring").width!==desired){$("ring").width=desired;$("ring").height=Math.round(desired*650/1280);}
+    context.setTransform($("ring").width/1280,0,0,$("ring").height/650,0,0);
     if(mode==="online") {
       if(!onlineEnded && network.core) {
         network.health();
@@ -501,6 +532,7 @@
       if(videoState==="done" && !paused) {
         D.VideoCutIn.stop();
         match.endCinematic(match.cinematic,true);
+        consumeEvents(match.drain());
         returnFlash=8;
         queue.fill(null);
       }
@@ -521,6 +553,7 @@
         hud();
       }
     }
+    D.Music.update(match.cinematic);
     context.clearRect(0,0,1280,650);
     context.save();
     if(settings.motion && !paused && shake>.3 && !match.cinematic) context.translate(Math.sin(now)*shake,Math.cos(now)*shake*.44);
@@ -539,12 +572,13 @@
   }
   function consumeEvents(events) {
     for(const event of events) {
+      if(["crushRelease","rushRelease"].includes(event.type))D.Music.release(event);
       if(event.type==="special" && mode!=="online")D.VideoCutIn.start(match.cinematic,settings.motion);
       const film=mode==="online"?!!D.movieFor(event) && settings.motion:D.VideoCutIn.holds(match.cinematic);
       D.Audio.event(event,film);
       if(["crushRelease","rushRelease"].includes(event.type) && mode==="online")returnFlash=8;
-      if(event.type==="over"){onlineEnded=true;result();continue;}
-      if(!["fight","swing","step","jump","special","crushRelease","rushRelease","specialVoice"].includes(event.type))fx.push({...event,age:0});
+      if(event.type==="over"){D.Music.stop(.65);onlineEnded=true;result();continue;}
+      if(!["fight","swing","step","jump","special","crushRelease","rushRelease","specialVoice","cutinDialogue"].includes(event.type))fx.push({...event,age:0});
       if(event.heavy)shake=event.type==="block"?3:7;
       if(event.rushFinish)shake=4;
     }
@@ -577,10 +611,10 @@
     if(mode==="online"){show("lobby");return;}
     if(!match || match.phase==="over") return;
     paused=!paused;clearKeys();accumulator=0;
+    D.Audio.setPaused(paused);
     if(!paused) {
       $("battle-overlay").hidden=true;$("pause").focus({preventScroll:true});return;
     }
-    D.Audio.stopVoices();
     overlay("PAUSE","一時停止","Escでも再開できます。",[["続ける",togglePause,true],["最初から",start],["対戦準備へ",()=>show("lobby")]]);
   }
   function openSelectedEditor() {
@@ -604,10 +638,13 @@
   });
   document.addEventListener("keyup",e=>keys.delete(e.code));
   window.addEventListener("blur",()=>{clearKeys();if(inBattle() && mode!=="online")togglePause();});
-  document.addEventListener("visibilitychange",()=>{if(document.hidden){clearKeys();if(inBattle() && mode!=="online")togglePause();}});
+  document.addEventListener("visibilitychange",()=>{D.Audio.visibility(!document.hidden);if(document.hidden){clearKeys();if(inBattle() && mode!=="online")togglePause();}});
+  window.addEventListener("pagehide",()=>{clearKeys();D.Audio.visibility(false);});
   $$("[data-icon]").forEach(el=>{el.innerHTML=icon(el.dataset.icon);});
   $("settings").innerHTML=icon("settings");
   $("settings").onclick=options;$("help").onclick=help;
+  $("battle-settings").onclick=options;$("audio-resume").onclick=()=>D.Audio.init();
+  $("fullscreen").onclick=async()=>{D.Audio.init();clearKeys();try{if(document.fullscreenElement)await document.exitFullscreen();else{await $("battle").requestFullscreen();await window.screen.orientation?.lock?.("landscape").catch(()=>{});}}catch{notify("このまま横向きにすると広く遊べます。");}};
   $("sound").onclick=()=>{settings.sound=!settings.sound;updateOptions();};
   $("close-dialog").onclick=()=>$("dialog").close();
   $("brand").onclick=$("tab-match").onclick=$("back-editor").onclick=()=>show("lobby");
@@ -629,9 +666,12 @@
   };
   $("save").onclick=save;$("start").onclick=start;$("pause").onclick=togglePause;
   $("dummy-live").onchange=e=>{dummy=e.target.value;if(match)match.dummy=dummy;clearKeys();e.target.blur();};
-  $("reset-practice").onclick=()=>{D.VideoCutIn.stop();D.Audio.stopVoices();D.Audio.resetSupers();match?.resetPractice();returnFlash=0;fx=[];clearKeys();};
+  $("reset-practice").onclick=()=>{D.VideoCutIn.stop();D.Audio.stopVoices();D.Audio.resetSupers();D.Music.battle();match?.resetPractice();returnFlash=0;fx=[];clearKeys();};
   drawSound();
+  D.Audio.configure(settings);D.Touch.configure(settings);
   if(!settings.sound)D.Audio.mute(true);
   paintLobby();
   requestAnimationFrame(frame);
 })(Dojo);
+
+

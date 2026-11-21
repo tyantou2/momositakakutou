@@ -28,8 +28,8 @@
   };
   const specials = ["rush", "crush", "counter", "comet"];
   const cutins={
-    momokage:{key:"crush",element:"crush-video",start:.30,end:3.75,title:800,frames:255,lunge:10,release:"crushRelease",voiceLead:.60,voice:"assets/momokage-super-v31.mp3",voiceDuration:.811},
-    momonosuke:{key:"rush",element:"rush-video",start:0,end:241/60,title:800,frames:289,lunge:6,release:"rushRelease",voiceLead:.30,voice:"assets/momonosuke-super-v31.mp3",voiceDuration:.864}
+    momokage:{key:"crush",element:"crush-video",start:.30,end:3.75,title:800,frames:255,lunge:10,release:"crushRelease",voiceLead:.60,voice:"assets/momokage-super-v31.mp3",voiceDuration:.811,dialogue:{time:85/60,src:"assets/momokage-dialogue-v32.mp3",duration:.416,text:"いくぞっ！"}},
+    momonosuke:{key:"rush",element:"rush-video",start:0,end:241/60,title:800,frames:289,lunge:6,release:"rushRelease",voiceLead:.30,voice:"assets/momonosuke-super-v31.mp3",voiceDuration:.864,dialogue:{time:1.60,src:"assets/momonosuke-dialogue-v32.mp3",duration:.693,text:"いくよっ！"}}
   };
   const movieFor=shot=>{const clip=cutins[shot?.a?.data?.id];return clip?.key===shot?.key?clip:null;};
   const voiceSlots = { start: "試合開始", attack: "攻撃", special: "必殺技", damage: "被弾", win: "勝利" };
@@ -77,9 +77,9 @@
   }
   const cast = [
     rosterEntry({ id:"momokage",name:"桃陰",height:8,speed:4,power:7,bonus:presets.power.bonus,special:"crush" },
-      { image:"assets/momokage.png", epithet:"白桃一族の熱血先生", short:"熱血先生", accent:"#92afff", arm:"#293253", sprite:{ crop:[82,66,826,1297], align:.52, glove:[.87,.61], shoulder:[.78,.69] } }),
+      { image:"assets/momokage-v32.webp", epithet:"白桃一族の熱血先生", short:"熱血先生", accent:"#92afff", arm:"#293253", sprite:{ crop:[82,66,826,1297], align:.52, glove:[.87,.61], shoulder:[.78,.69] } }),
     rosterEntry({ id:"momonosuke",name:"もものすけ",height:1,speed:8,power:5,bonus:{stamina:5,dodge:4,guard:1},special:"rush" },
-      { image:"assets/momonosuke.png", epithet:"好奇心いっぱいの桃の妖精", short:"桃の妖精", accent:"#ffa4be", arm:"#f6dce6", sprite:{ crop:[150,40,939,1087], align:.55, glove:[.82,.58], shoulder:[.76,.66] } })
+      { image:"assets/momonosuke-v32.webp", epithet:"好奇心いっぱいの桃の妖精", short:"桃の妖精", accent:"#ffa4be", arm:"#f6dce6", sprite:{ crop:[150,40,939,1087], align:.55, glove:[.82,.58], shoulder:[.76,.66] } })
   ];
   cast.push(rosterEntry({id:"yan",name:"ゃん",height:6,speed:6,power:5,bonus:{stamina:4,dodge:3,guard:3}},
     {special:"azure",image:"assets/yan.webp",epithet:"蒼閃を放つ桃下の挑戦者",short:"蒼閃の挑戦者",accent:"#6bf2ff",arm:"#23263e",mitt:"#343b4c",sprite:{crop:[22,55,548,760],align:.50,glove:[.88,.44],shoulder:[.64,.52]}}));

@@ -60,6 +60,9 @@
       if (this.cinematic) {
         const clip=D.movieFor(this.cinematic);
         ++this.cinematic.age;
+        if(this.online && clip?.dialogue && this.cinematic.age===Math.round(clip.title/1000*60+(clip.dialogue.time-clip.start)*60)) {
+          this.emit("cutinDialogue",this.cinematic.a,null,{key:this.cinematic.key,serial:this.cinematic.serial});
+        }
         if(this.online && clip && this.cinematic.age===clip.frames-Math.round(clip.voiceLead*60)) {
           this.emit("specialVoice",this.cinematic.a,null,{key:this.cinematic.key,serial:this.cinematic.serial});
         }
@@ -130,7 +133,7 @@
     }
     announce(shot) {
       const {a,key}=shot;
-      this.emit("special",a,null,{key});
+      this.emit("special",a,null,{key,serial:shot.serial});
     }
     endCinematic(shot,prepared=false) {
       if (!shot || this.cinematic!==shot) return false;
@@ -143,7 +146,7 @@
         attack.stepScale=remaining/lunge;
         attack.age=attack.wind-lunge;
       }
-      if(clip && attack?.key===shot.key)this.emit(clip.release,shot.a,null,{key:shot.key,serial:shot.serial});
+      if(clip && attack?.key===shot.key)this.emit(clip.release,shot.a,null,{key:shot.key,serial:shot.serial,prepared});
       this.cinematics.shift();
       if (this.cinematic) this.announce(this.cinematic);
       return true;

@@ -1,6 +1,8 @@
 (function(D) {
   "use strict";
-  let audio, noise, muted=false;
+  let audio, noise, muted=false,sfxBus,voiceBus,musicBus,masterGain,paused=false,hidden=false,generation=0;
+  const buffers=new Map();
+  let volumes={bgmVolume:.65,sfxVolume:.8,voiceVolume:1};
   const voices = new Set();
   const builtIn = new Set(["momokage","momonosuke"]);
   let introTimer=0;
@@ -9,37 +11,66 @@
   for(const clip of Object.values(D.cutins)){const track=new Audio(clip.voice);track.preload="auto";superClips.set(clip.voice,track);}
   let lastCallout=new WeakMap();
   function init() {
-    if (muted) return;
+    if (muted && !audio) return;
     try {
-      if (!audio) audio = new AudioContext();
-      if (audio.state==="suspended") audio.resume().catch(()=>{});
+      if (!audio) {
+        const Context=globalThis.AudioContext||globalThis.webkitAudioContext;if(!Context)return;
+        audio=new Context();const master=audio.createDynamicsCompressor();master.threshold.value=-5;master.knee.value=12;master.ratio.value=4;masterGain=audio.createGain();master.connect(masterGain).connect(audio.destination);
+        sfxBus=audio.createGain();voiceBus=audio.createGain();musicBus=audio.createGain();sfxBus.connect(master);voiceBus.connect(master);musicBus.connect(master);
+        D.Music?.attach(audio,musicBus);configure(volumes);
+        for(const id of builtIn)for(const tag of Object.keys(D.voiceSlots))loadBuffer("assets/"+id+"-"+tag+".mp3?v=2.3").catch(()=>{});
+        for(const clip of Object.values(D.cutins)){loadBuffer(clip.voice).catch(()=>{});if(clip.dialogue)loadBuffer(clip.dialogue.src).catch(()=>{});}
+        D.Music?.preload();
+      }
+      if(audio.state==="suspended"&&!paused&&!hidden)audio.resume().catch(()=>{});
     } catch { /* Web Audio is optional for gameplay. */ }
   }
+  function configure(options){volumes={...volumes,...options};if(sfxBus)sfxBus.gain.value=volumes.sfxVolume;if(voiceBus)voiceBus.gain.value=volumes.voiceVolume*1.25;D.Music?.setVolume(volumes.bgmVolume);}
+  async function loadBuffer(src){
+    if(buffers.has(src))return buffers.get(src);
+    if(!audio)throw Error("Audio context not initialized");
+    const pending=fetch(src).then(r=>{if(!r.ok)throw Error("Audio unavailable");return r.arrayBuffer();}).then(b=>audio.decodeAudioData(b));
+    buffers.set(src,pending);pending.catch(()=>buffers.delete(src));
+    if(buffers.size>40)for(const key of buffers.keys()){if(!key.includes('/music/')&&key!==src){buffers.delete(key);break;}}
+    return pending;
+  }
   function stopVoices() {
+    generation++;
     clearTimeout(introTimer);
-    for (const clip of voices) clip.pause();
+    for(const clip of voices){if(clip.stop){try{clip.stop();}catch{}}else clip.pause();}
     voices.clear();
   }
   function mute(value) {
     muted=value;
+    if(masterGain)masterGain.gain.value=muted?0:1;
     if (value) {
       stopVoices();
-      if (audio) audio.suspend().catch(()=>{});
     } else init();
   }
-  async function voice(data) {
+  async function voice(data,offset=0) {
     if (muted || !data) return false;
+    const token=generation,requested=performance.now();
+    if(audio && location.protocol!=="file:") {
+      try {
+        const buffer=await loadBuffer(data),late=offset+(performance.now()-requested)/1000;
+        if(muted||hidden||token!==generation||late>buffer.duration-.08)return false;
+        const clip=audio.createBufferSource();clip.buffer=buffer;clip.assetUrl=data;clip.connect(voiceBus);clip.onended=()=>voices.delete(clip);voices.add(clip);
+        D.Music?.duck(buffer.duration-late+.08);clip.start(0,Math.max(0,late));return true;
+      }catch{if(token!==generation||muted||hidden)return false;}
+    }
     const clip=superClips.get(data)||new Audio(data);
-    if(superClips.has(data)){clip.currentTime=0;clip.volume=.96;}else clip.volume=data.startsWith("assets/")?.82:.66;
+    if(superClips.has(data)){clip.currentTime=0;clip.volume=.96*volumes.voiceVolume;}else clip.volume=(data.startsWith("assets/")?.82:.66)*volumes.voiceVolume;
+    if(offset>0)try{clip.currentTime=offset;}catch{}
     const forget=()=>voices.delete(clip);
     clip.onended=forget;
     clip.onerror=forget;
     if (voices.size>=3) {
       const oldest=voices.values().next().value;
-      oldest.pause();
+      if(oldest.stop){try{oldest.stop();}catch{}}else oldest.pause();
       voices.delete(oldest);
     }
     voices.add(clip);
+    D.Music?.duck(1);
     try { await clip.play(); return true; } catch { forget(); return false; }
   }
   function tone(freq,end,length,amp,shape="sine",delay=0) {
@@ -49,7 +80,7 @@
     const osc=audio.createOscillator(), gain=audio.createGain();
     osc.type=shape;osc.frequency.setValueAtTime(freq,t);osc.frequency.exponentialRampToValueAtTime(end,t+length);
     gain.gain.setValueAtTime(.001,t);gain.gain.linearRampToValueAtTime(amp,t+.009);gain.gain.exponentialRampToValueAtTime(.001,t+length);
-    osc.connect(gain).connect(audio.destination);osc.start(t);osc.stop(t+length);
+    osc.connect(gain).connect(sfxBus||audio.destination);osc.start(t);osc.stop(t+length);
   }
   function thump(length,amp,freq) {
     if (muted || !audio || audio.state!=="running") return;
@@ -64,7 +95,7 @@
     src.buffer=noise;filter.type="lowpass";filter.frequency.setValueAtTime(freq,t);
     filter.frequency.exponentialRampToValueAtTime(140,t+length);
     gain.gain.setValueAtTime(amp,t);gain.gain.exponentialRampToValueAtTime(.001,t+length);
-    src.connect(filter).connect(gain).connect(audio.destination);src.start(t);src.stop(t+length);
+    src.connect(filter).connect(gain).connect(sfxBus||audio.destination);src.start(t);src.stop(t+length);
   }
   function characterVoice(f,tag) {
     return f.data.voice[tag]?.data || (builtIn.has(f.data.id)?"assets/"+f.data.id+"-"+tag+".mp3?v=2.3":null);
@@ -84,6 +115,7 @@
     introTimer=setTimeout(()=>callout(b,"start"),characterVoice(a,"start")?1430:0);
   }
   function event(e,videoCutIn=false) {
+    if(e.type==="cutinDialogue"){dialogueVoice(e);return;}
     if(e.type==="specialVoice"){superVoice(e);return;}
     if(e.type==="crushRelease" || e.type==="rushRelease")superVoice(e);
     if (muted) return;
@@ -127,5 +159,16 @@
     voice(clip.voice);
   }
   function resetSupers(){announced.clear();duckUntil=0;}
-  D.Audio={init,mute,voice,event,intro,stopVoices,superVoice,resetSupers};
+  function dialogueVoice(event){
+    const clip=D.movieFor(event),line=clip?.dialogue;if(!line)return;
+    const key=event.serial+":"+event.a.index+":dialogue";
+    if(announced.has(key))return;announced.add(key);
+    if(muted||!D.VideoCutIn?.canDialogue(event))return;
+    const offset=D.VideoCutIn.dialogueOffset?.(event)||0;
+    if(offset>line.duration-.08)return;
+    duckUntil=performance.now()+(line.duration-offset)*1000+80;voice(line.src,offset);
+  }
+  function setPaused(value){paused=value;if(audio){if(paused)audio.suspend().catch(()=>{});else init();}}
+  function visibility(value){hidden=!value;if(hidden){stopVoices();if(audio)audio.suspend().catch(()=>{});}else if(!paused)init();}
+  D.Audio={init,mute,voice,event,intro,stopVoices,superVoice,dialogueVoice,resetSupers,configure,loadBuffer,setPaused,visibility,status:()=>({state:audio?.state||"uninitialized",voices:voices.size,cache:buffers.size,volumes,muted,paused,hidden,masterGain:masterGain?.gain.value??0})};
 })(Dojo);

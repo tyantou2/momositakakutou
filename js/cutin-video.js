@@ -4,7 +4,7 @@
   const elements=Object.fromEntries(Object.values(D.cutins).map(clip=>[clip.element,document.getElementById(clip.element)]));
   const cached=document.createElement("canvas");cached.width=1280;cached.height=650;
   const cache=cached.getContext("2d");let hasFrame=false;
-  let shot=null,clip=null,video=null,state="idle",lastTime=0,stalled=0,clock=null,suspended=false,titleTime=0,cueSent=false;
+  let shot=null,clip=null,video=null,state="idle",lastTime=0,stalled=0,clock=null,suspended=false,titleTime=0,cueSent=false,dialogueSent=false;
   function stop() {video?.pause();shot=null;clip=null;state="idle";clock=null;suspended=false;hasFrame=false;}
   function fallback() {
     if(["idle","done","title"].includes(state))return;
@@ -15,7 +15,7 @@
     stop();const definition=D.movieFor(candidate);
     if(!definition || !animate)return;
     shot=candidate;clip=definition;video=elements[clip.element];
-    state="title";titleTime=0;lastTime=clip.start;stalled=0;cueSent=false;
+    state="title";titleTime=0;lastTime=clip.start;stalled=0;cueSent=false;dialogueSent=false;
     if(!video){state="fallback";return;}
     try{video.currentTime=clip.start;video.playbackRate=1;}catch{fallback();}
   }
@@ -32,6 +32,7 @@
     }
     if(video.error)fallback();
     if(state==="fallback")return "fallback";
+    if(!dialogueSent&&clip.dialogue&&video.currentTime>=clip.dialogue.time){dialogueSent=true;D.Audio.dialogueVoice(shot);}
     if(!cueSent && video.currentTime>=clip.end-clip.voiceLead){cueSent=true;D.Audio.superVoice(shot);}
     if(video.ended || video.currentTime>=clip.end){state="done";video.pause();return "done";}
     if(video.currentTime>lastTime+.001){lastTime=video.currentTime;stalled=0;state="playing";}else stalled+=elapsed;
@@ -53,7 +54,7 @@
     try{c.drawImage(video,(1280-width)/2,(650-height)/2,width,height);}catch{c.restore();fallback();return false;}
     c.globalAlpha=Math.max(0,(video.currentTime-(clip.end-.12))/.12)*.65;
     c.fillStyle="#fff1f7";c.fillRect(0,0,1280,650);c.restore();
-    cache.drawImage(c.canvas,0,0);hasFrame=true;return true;
+    cache.drawImage(c.canvas,0,0,1280,650);hasFrame=true;return true;
   }
   for(const element of Object.values(elements))element?.addEventListener("error",()=>{if(element===video)fallback();});
   function online(candidate,animate,running=true) {
@@ -69,5 +70,6 @@
     suspended=!running || target>=clip.end-.026;
     if(suspended)video.pause();else if(video.paused)play(candidate);
   }
-  D.VideoCutIn={start,stop,update,holds,isVideo,draw,online};
+  function canDialogue(event){return !!shot&&event.serial===shot.serial&&event.key===shot.key&&state==="playing"&&hasFrame&&video.readyState>=2&&!video.error&&Math.abs(video.currentTime-clip.dialogue.time)<.36;}
+  D.VideoCutIn={start,stop,update,holds,isVideo,draw,online,canDialogue,dialogueOffset:()=>clip?.dialogue?Math.max(0,video.currentTime-clip.dialogue.time):0};
 })(Dojo);
