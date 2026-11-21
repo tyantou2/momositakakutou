@@ -1,0 +1,26 @@
+[
+  {
+    "name": "momokage",
+    "credit": "VOICEVOX:†聖騎士 紅桜†",
+    "text": "はくとうくだき！！",
+    "style_id": 51,
+    "kana": "ハ_クトオ'/クダ'キ",
+    "speed": 1.12,
+    "pitch": -0.025,
+    "intonation": 1.35,
+    "duration": 0.810667,
+    "file": "momokage-super-v31.mp3"
+  },
+  {
+    "name": "momonosuke",
+    "credit": "VOICEVOX:猫使ビィ",
+    "text": "ひゃっかラッシュ！！",
+    "style_id": 58,
+    "kana": "ヒャッカラ'ッシュ",
+    "speed": 1.13,
+    "pitch": 0.015,
+    "intonation": 1.35,
+    "duration": 0.864,
+    "file": "momonosuke-super-v31.mp3"
+  }
+]

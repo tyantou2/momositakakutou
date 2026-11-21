@@ -1,0 +1,461 @@
+{
+  "beforeCommit": "a6944d65958ef90af9a67d3d861b6eb250908318",
+  "normalCosts": {
+    "light": 10,
+    "heavy": 24
+  },
+  "guardImpactBefore": {
+    "light": 19.3,
+    "heavy": 36.4
+  },
+  "guardImpactAfter": {
+    "light": 4,
+    "heavy": 47.5
+  },
+  "guardDrainBefore": 6,
+  "guardDrainAfter": 4,
+  "before": [
+    {
+      "attacker": "桃陰",
+      "defender": "もものすけ",
+      "action": "light",
+      "outcome": "defender_break",
+      "seconds": 2.867,
+      "blocked": 7,
+      "attackerStamina": 46,
+      "defenderStamina": 0,
+      "breakAt": 7
+    },
+    {
+      "attacker": "桃陰",
+      "defender": "もものすけ",
+      "action": "heavy",
+      "outcome": "defender_break",
+      "seconds": 3.317,
+      "blocked": 4,
+      "attackerStamina": 20,
+      "defenderStamina": 0,
+      "breakAt": 4
+    },
+    {
+      "attacker": "もものすけ",
+      "defender": "桃陰",
+      "action": "light",
+      "outcome": "defender_break",
+      "seconds": 3.317,
+      "blocked": 8,
+      "attackerStamina": 36,
+      "defenderStamina": 0,
+      "breakAt": 8
+    },
+    {
+      "attacker": "もものすけ",
+      "defender": "桃陰",
+      "action": "heavy",
+      "outcome": "defender_break",
+      "seconds": 3.183,
+      "blocked": 4,
+      "attackerStamina": 20,
+      "defenderStamina": 0,
+      "breakAt": 4
+    },
+    {
+      "attacker": "桃陰",
+      "defender": "桃陰",
+      "action": "light",
+      "outcome": "defender_break",
+      "seconds": 3.317,
+      "blocked": 8,
+      "attackerStamina": 36,
+      "defenderStamina": 0,
+      "breakAt": 8
+    },
+    {
+      "attacker": "桃陰",
+      "defender": "桃陰",
+      "action": "heavy",
+      "outcome": "defender_break",
+      "seconds": 3.317,
+      "blocked": 4,
+      "attackerStamina": 20,
+      "defenderStamina": 0,
+      "breakAt": 4
+    },
+    {
+      "attacker": "もものすけ",
+      "defender": "もものすけ",
+      "action": "light",
+      "outcome": "defender_break",
+      "seconds": 2.867,
+      "blocked": 7,
+      "attackerStamina": 46,
+      "defenderStamina": 0,
+      "breakAt": 7
+    },
+    {
+      "attacker": "もものすけ",
+      "defender": "もものすけ",
+      "action": "heavy",
+      "outcome": "defender_break",
+      "seconds": 3.183,
+      "blocked": 4,
+      "attackerStamina": 20,
+      "defenderStamina": 0,
+      "breakAt": 4
+    },
+    {
+      "attacker": "ゃん",
+      "defender": "ゃん",
+      "action": "light",
+      "outcome": "defender_break",
+      "seconds": 3.317,
+      "blocked": 8,
+      "attackerStamina": 32,
+      "defenderStamina": 0,
+      "breakAt": 8
+    },
+    {
+      "attacker": "ゃん",
+      "defender": "ゃん",
+      "action": "heavy",
+      "outcome": "defender_break",
+      "seconds": 3.183,
+      "blocked": 4,
+      "attackerStamina": 16,
+      "defenderStamina": 0,
+      "breakAt": 4
+    },
+    {
+      "attacker": "標準",
+      "defender": "標準",
+      "action": "light",
+      "outcome": "defender_break",
+      "seconds": 3.317,
+      "blocked": 8,
+      "attackerStamina": 32,
+      "defenderStamina": 0,
+      "breakAt": 8
+    },
+    {
+      "attacker": "標準",
+      "defender": "標準",
+      "action": "heavy",
+      "outcome": "defender_break",
+      "seconds": 3.183,
+      "blocked": 4,
+      "attackerStamina": 16,
+      "defenderStamina": 0,
+      "breakAt": 4
+    },
+    {
+      "attacker": "高持久",
+      "defender": "高持久",
+      "action": "light",
+      "outcome": "defender_break",
+      "seconds": 3.317,
+      "blocked": 8,
+      "attackerStamina": 36,
+      "defenderStamina": 0,
+      "breakAt": 8
+    },
+    {
+      "attacker": "高持久",
+      "defender": "高持久",
+      "action": "heavy",
+      "outcome": "defender_break",
+      "seconds": 3.183,
+      "blocked": 4,
+      "attackerStamina": 20,
+      "defenderStamina": 0,
+      "breakAt": 4
+    },
+    {
+      "attacker": "標準",
+      "defender": "高防御",
+      "action": "light",
+      "outcome": "defender_break",
+      "seconds": 3.767,
+      "blocked": 9,
+      "attackerStamina": 22,
+      "defenderStamina": 0,
+      "breakAt": 9
+    },
+    {
+      "attacker": "標準",
+      "defender": "高防御",
+      "action": "heavy",
+      "outcome": "attacker_tired",
+      "seconds": 3.75,
+      "blocked": 4,
+      "attackerStamina": 16,
+      "defenderStamina": 15.964,
+      "breakAt": null
+    },
+    {
+      "attacker": "標準",
+      "defender": "低防御",
+      "action": "light",
+      "outcome": "defender_break",
+      "seconds": 2.867,
+      "blocked": 7,
+      "attackerStamina": 42,
+      "defenderStamina": 0,
+      "breakAt": 7
+    },
+    {
+      "attacker": "標準",
+      "defender": "低防御",
+      "action": "heavy",
+      "outcome": "defender_break",
+      "seconds": 3.183,
+      "blocked": 4,
+      "attackerStamina": 16,
+      "defenderStamina": 0,
+      "breakAt": 4
+    },
+    {
+      "attacker": "高防御",
+      "defender": "高防御",
+      "action": "light",
+      "outcome": "defender_break",
+      "seconds": 3.767,
+      "blocked": 9,
+      "attackerStamina": 26,
+      "defenderStamina": 0,
+      "breakAt": 9
+    },
+    {
+      "attacker": "高防御",
+      "defender": "高防御",
+      "action": "heavy",
+      "outcome": "attacker_tired",
+      "seconds": 3.75,
+      "blocked": 4,
+      "attackerStamina": 20,
+      "defenderStamina": 15.964,
+      "breakAt": null
+    }
+  ],
+  "after": [
+    {
+      "attacker": "桃陰",
+      "defender": "もものすけ",
+      "action": "light",
+      "outcome": "attacker_tired",
+      "seconds": 4.967,
+      "blocked": 11,
+      "attackerStamina": 6,
+      "defenderStamina": 64.571,
+      "breakAt": null
+    },
+    {
+      "attacker": "桃陰",
+      "defender": "もものすけ",
+      "action": "heavy",
+      "outcome": "defender_break",
+      "seconds": 2.35,
+      "blocked": 3,
+      "attackerStamina": 44,
+      "defenderStamina": 0,
+      "breakAt": 3
+    },
+    {
+      "attacker": "もものすけ",
+      "defender": "桃陰",
+      "action": "light",
+      "outcome": "attacker_tired",
+      "seconds": 4.967,
+      "blocked": 11,
+      "attackerStamina": 6,
+      "defenderStamina": 67.035,
+      "breakAt": null
+    },
+    {
+      "attacker": "もものすけ",
+      "defender": "桃陰",
+      "action": "heavy",
+      "outcome": "defender_break",
+      "seconds": 3.183,
+      "blocked": 4,
+      "attackerStamina": 20,
+      "defenderStamina": 0,
+      "breakAt": 4
+    },
+    {
+      "attacker": "桃陰",
+      "defender": "桃陰",
+      "action": "light",
+      "outcome": "attacker_tired",
+      "seconds": 4.967,
+      "blocked": 11,
+      "attackerStamina": 6,
+      "defenderStamina": 67.035,
+      "breakAt": null
+    },
+    {
+      "attacker": "桃陰",
+      "defender": "桃陰",
+      "action": "heavy",
+      "outcome": "defender_break",
+      "seconds": 3.317,
+      "blocked": 4,
+      "attackerStamina": 20,
+      "defenderStamina": 0,
+      "breakAt": 4
+    },
+    {
+      "attacker": "もものすけ",
+      "defender": "もものすけ",
+      "action": "light",
+      "outcome": "attacker_tired",
+      "seconds": 4.967,
+      "blocked": 11,
+      "attackerStamina": 6,
+      "defenderStamina": 64.571,
+      "breakAt": null
+    },
+    {
+      "attacker": "もものすけ",
+      "defender": "もものすけ",
+      "action": "heavy",
+      "outcome": "defender_break",
+      "seconds": 2.25,
+      "blocked": 3,
+      "attackerStamina": 44,
+      "defenderStamina": 0,
+      "breakAt": 3
+    },
+    {
+      "attacker": "ゃん",
+      "defender": "ゃん",
+      "action": "light",
+      "outcome": "attacker_tired",
+      "seconds": 4.967,
+      "blocked": 11,
+      "attackerStamina": 2,
+      "defenderStamina": 65.499,
+      "breakAt": null
+    },
+    {
+      "attacker": "ゃん",
+      "defender": "ゃん",
+      "action": "heavy",
+      "outcome": "defender_break",
+      "seconds": 3.183,
+      "blocked": 4,
+      "attackerStamina": 16,
+      "defenderStamina": 0,
+      "breakAt": 4
+    },
+    {
+      "attacker": "標準",
+      "defender": "標準",
+      "action": "light",
+      "outcome": "attacker_tired",
+      "seconds": 4.967,
+      "blocked": 11,
+      "attackerStamina": 2,
+      "defenderStamina": 65.499,
+      "breakAt": null
+    },
+    {
+      "attacker": "標準",
+      "defender": "標準",
+      "action": "heavy",
+      "outcome": "defender_break",
+      "seconds": 3.183,
+      "blocked": 4,
+      "attackerStamina": 16,
+      "defenderStamina": 0,
+      "breakAt": 4
+    },
+    {
+      "attacker": "高持久",
+      "defender": "高持久",
+      "action": "light",
+      "outcome": "attacker_tired",
+      "seconds": 4.967,
+      "blocked": 11,
+      "attackerStamina": 6,
+      "defenderStamina": 67.035,
+      "breakAt": null
+    },
+    {
+      "attacker": "高持久",
+      "defender": "高持久",
+      "action": "heavy",
+      "outcome": "defender_break",
+      "seconds": 3.183,
+      "blocked": 4,
+      "attackerStamina": 20,
+      "defenderStamina": 0,
+      "breakAt": 4
+    },
+    {
+      "attacker": "標準",
+      "defender": "高防御",
+      "action": "light",
+      "outcome": "attacker_tired",
+      "seconds": 4.967,
+      "blocked": 11,
+      "attackerStamina": 2,
+      "defenderStamina": 74.427,
+      "breakAt": null
+    },
+    {
+      "attacker": "標準",
+      "defender": "高防御",
+      "action": "heavy",
+      "outcome": "defender_break",
+      "seconds": 3.183,
+      "blocked": 4,
+      "attackerStamina": 16,
+      "defenderStamina": 0,
+      "breakAt": 4
+    },
+    {
+      "attacker": "標準",
+      "defender": "低防御",
+      "action": "light",
+      "outcome": "attacker_tired",
+      "seconds": 4.967,
+      "blocked": 11,
+      "attackerStamina": 2,
+      "defenderStamina": 62.107,
+      "breakAt": null
+    },
+    {
+      "attacker": "標準",
+      "defender": "低防御",
+      "action": "heavy",
+      "outcome": "defender_break",
+      "seconds": 2.25,
+      "blocked": 3,
+      "attackerStamina": 40,
+      "defenderStamina": 0,
+      "breakAt": 3
+    },
+    {
+      "attacker": "高防御",
+      "defender": "高防御",
+      "action": "light",
+      "outcome": "attacker_tired",
+      "seconds": 4.967,
+      "blocked": 11,
+      "attackerStamina": 6,
+      "defenderStamina": 74.427,
+      "breakAt": null
+    },
+    {
+      "attacker": "高防御",
+      "defender": "高防御",
+      "action": "heavy",
+      "outcome": "defender_break",
+      "seconds": 3.183,
+      "blocked": 4,
+      "attackerStamina": 20,
+      "defenderStamina": 0,
+      "breakAt": 4
+    }
+  ]
+}

@@ -6,7 +6,7 @@
     exhaustion:90, jump:665, gravity:1440, superLimit:2, cutIn:66, openingCharge:24,
     chargePerSecond:.40, hitCharge:3.2, receivedCharge:2, guardCharge:2.6, evadeCharge:4.5,
     perfectWindow:3, perfectCooldown:120, punishWindow:40, perfectRecovery:5, perfectStop:5,
-    landingRecovery:12, guardDrain:6
+    landingRecovery:12, guardDrain:4
   };
   const passive = () => ({ axis:0, guard:false });
   const gap = (a,b) => Math.abs(a.x-b.x);
@@ -58,7 +58,12 @@
         return;
       }
       if (this.cinematic) {
-        if (++this.cinematic.age>=(this.cinematic.duration || RULES.cutIn)) {
+        const clip=D.movieFor(this.cinematic);
+        ++this.cinematic.age;
+        if(this.online && clip && this.cinematic.age===clip.frames-Math.round(clip.voiceLead*60)) {
+          this.emit("specialVoice",this.cinematic.a,null,{key:this.cinematic.key,serial:this.cinematic.serial});
+        }
+        if (this.cinematic.age>=(this.cinematic.duration || RULES.cutIn)) {
           this.endCinematic(this.cinematic,this.online);
         }
         return;
@@ -96,7 +101,8 @@
       this.cinematics=openings.filter(shot=>shot.a.attack?.key===shot.key);
       for(const shot of this.cinematics) {
         shot.serial=this.frame*2+shot.a.index;
-        if(this.online && shot.a.data.id==="momokage" && shot.key==="crush") shot.duration=255;
+        const clip=D.movieFor(shot);
+        if(this.online && clip)shot.duration=clip.frames;
       }
       // Snapshot after BOTH updates, so a pre-entered defense works on either side.
       for (const shot of this.cinematics) {
@@ -129,14 +135,15 @@
     endCinematic(shot,prepared=false) {
       if (!shot || this.cinematic!==shot) return false;
       const attack=shot.a.attack;
-      if(prepared && shot.a.data.id==="momokage" && shot.key==="crush" && attack?.key==="crush") {
+      const clip=D.movieFor(shot);
+      if(prepared && clip && attack?.key===shot.key) {
         // The film supplies the wind-up. Preserve its total travel in the final lunge.
         const remaining=attack.wind-attack.age;
-        const lunge=Math.min(remaining,10);
+        const lunge=Math.min(remaining,clip.lunge);
         attack.stepScale=remaining/lunge;
         attack.age=attack.wind-lunge;
-        this.emit("crushRelease",shot.a);
       }
+      if(clip && attack?.key===shot.key)this.emit(clip.release,shot.a,null,{key:shot.key,serial:shot.serial});
       this.cinematics.shift();
       if (this.cinematic) this.announce(this.cinematic);
       return true;
@@ -333,7 +340,8 @@
       let damage=move.damage*a.p.damage;
       let stun=move.stun;
       if (kind==="block") {
-        b.stamina-=(move.damage*1.9+6)*b.p.guardCost*(move.guardScale || 1);
+        const guardDamage=move.guardDamage ?? (move.damage*1.9+6)*(move.guardScale || 1);
+        b.stamina-=guardDamage*b.p.guardCost;
         if (b.stamina<=0) {
           kind="break";
           b.stamina=0;
@@ -375,7 +383,9 @@
       if (normal) this.grant(a,kind==="block"?1.4:RULES.hitCharge);
       this.grant(b,kind==="block"?RULES.guardCharge:RULES.receivedCharge);
       this.freeze=Math.max(this.freeze,finisher?9:move.stop);
-      this.emit(kind,a,b,{point,lift,damage,heavy:finisher || move.stop>=6,crush,azure,finisher});
+      const rush=move===D.moves.rush && kind==="hit";
+      const rushBeat=rush?move.beats.indexOf(a.attack?.age-a.attack?.wind)+1:0;
+      this.emit(kind,a,b,{point,lift,damage,heavy:finisher || move.stop>=6,crush,azure,finisher,rush,rushBeat,rushFinish:rushBeat===4});
     }
     expire(f) {
       if (!f.attack) return;

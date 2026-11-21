@@ -394,6 +394,7 @@
     if(mode==="online" && !options?.fighters){network.setFighter(getFighter(0));network.ready();return;}
     D.VideoCutIn.stop();returnFlash=0;
     D.Audio.stopVoices();D.Audio.init();
+    D.Audio.resetSupers();
     onlineSide=options?.side||0;onlineEnded=false;
     match=new D.Match({fighters:options?.fighters || [getFighter(0),getFighter(1)],mode:mode==="online"?"local":mode,difficulty,dummy,online:mode==="online"});
     if(mode==="online")network.attachMatch(match,{delay:options.delay,onEvents:consumeEvents});
@@ -539,12 +540,13 @@
   function consumeEvents(events) {
     for(const event of events) {
       if(event.type==="special" && mode!=="online")D.VideoCutIn.start(match.cinematic,settings.motion);
-      const film=mode==="online"?event.a?.data.id==="momokage" && event.key==="crush" && settings.motion:D.VideoCutIn.holds(match.cinematic);
+      const film=mode==="online"?!!D.movieFor(event) && settings.motion:D.VideoCutIn.holds(match.cinematic);
       D.Audio.event(event,film);
-      if(event.type==="crushRelease" && mode==="online")returnFlash=8;
+      if(["crushRelease","rushRelease"].includes(event.type) && mode==="online")returnFlash=8;
       if(event.type==="over"){onlineEnded=true;result();continue;}
-      if(!["fight","swing","step","jump","special","crushRelease"].includes(event.type))fx.push({...event,age:0});
+      if(!["fight","swing","step","jump","special","crushRelease","rushRelease","specialVoice"].includes(event.type))fx.push({...event,age:0});
       if(event.heavy)shake=event.type==="block"?3:7;
+      if(event.rushFinish)shake=4;
     }
   }
   function overlay(label,title,detail,actions,statistics) {
@@ -627,7 +629,7 @@
   };
   $("save").onclick=save;$("start").onclick=start;$("pause").onclick=togglePause;
   $("dummy-live").onchange=e=>{dummy=e.target.value;if(match)match.dummy=dummy;clearKeys();e.target.blur();};
-  $("reset-practice").onclick=()=>{D.VideoCutIn.stop();match?.resetPractice();returnFlash=0;fx=[];clearKeys();};
+  $("reset-practice").onclick=()=>{D.VideoCutIn.stop();D.Audio.stopVoices();D.Audio.resetSupers();match?.resetPractice();returnFlash=0;fx=[];clearKeys();};
   drawSound();
   if(!settings.sound)D.Audio.mute(true);
   paintLobby();
