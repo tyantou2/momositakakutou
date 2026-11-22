@@ -18,18 +18,18 @@
     tank: { name: "タフ", speed: 2, power: 6, bonus: { stamina: 4, dodge: 1, guard: 5 } }
   };
   const moves = {
-    morph:{label:"二面変身",type:"村長専用",icon:"◇",wind:1,beats:[],end:66,reach:0,damage:0,stun:0,push:0,stop:0,step:0,color:"#83e4d8",detail:"各50%でテルマエ／野崎へ12秒変身。形態は選べない。通常攻撃に専用技A・Bが追加される。"},
+    morph:{label:"二面変身",type:"村長専用",icon:"◇",wind:1,beats:[],end:66,reach:0,damage:0,stun:0,push:0,stop:0,step:0,color:"#83e4d8",detail:"各50%でテルマエ／野崎へ12秒変身。形態は選べない。再使用1秒の専用技2つが追加される。"},
     bathwall:{label:"ローマ式浴場建築",wind:22,beats:[0],end:28,cost:18,reach:0,damage:0,stun:0,push:0,stop:0,step:0,color:"#b8eedf"},
-    geyser:{label:"間欠泉噴出",wind:27,beats:[0],end:30,cost:24,reach:65,damage:22,stun:20,push:95,stop:4,step:0,color:"#9beaff"},
-    shot:{label:"公安・制圧射撃",wind:14,beats:[0],end:32,cost:18,reach:420,damage:20,stun:16,push:135,stop:3,step:0,color:"#ffd29a"},
-    flank:{label:"公安・回り込み制圧",wind:16,beats:[0],end:34,cost:22,reach:100,damage:18,stun:20,push:235,stop:5,step:900,color:"#bac8ff"},
-    azure: { label:"蒼閃・一文字", type:"ゃん専用", icon:"⚡", wind:21, beats:[0,7,14], end:36, reach:134, damage:13, stun:14, push:35, stop:4, step:225, color:"#6bf2ff", detail:"蒼い残像を残して踏み込む三連撃。初撃命中で連続ヒットし、最後の一撃で吹き飛ばす。外した後は隙が大きい。" },
+    geyser:{label:"間欠泉噴出",wind:27,beats:[0],end:30,cost:24,reach:65,damage:16,stun:20,push:95,stop:4,step:0,color:"#9beaff"},
+    shot:{label:"公安・制圧射撃",wind:14,beats:[0],end:32,cost:18,reach:420,damage:14,stun:16,push:135,stop:3,step:0,color:"#ffd29a"},
+    flank:{label:"公安・回り込み制圧",wind:16,beats:[0],end:34,cost:22,reach:100,damage:13,stun:20,push:235,stop:5,step:900,color:"#bac8ff"},
+    azure: { label:"蒼閃・一文字", type:"ゃん専用", icon:"⚡", wind:21, beats:[0,7,14], end:36, reach:134, damage:15, guardDamage:30.7, stun:14, push:35, stop:4, step:225, color:"#6bf2ff", detail:"蒼い残像を残して踏み込む三連撃。初撃命中で連続ヒットし、最後の一撃で吹き飛ばす。外した後は隙が大きい。" },
     light: { label: "弱パンチ", wind: 10, beats: [0], end: 17, cost: 10, guardDamage:4, reach: 96, damage: 7, stun: 12, push: 78, stop: 3, step: 116 },
     heavy: { label: "強パンチ", wind: 24, beats: [0], end: 33, cost: 24, guardDamage:47.5, reach: 133, damage: 16, stun: 26, push: 310, stop: 8, step: 132 },
-    rush: { label: "百花ラッシュ", type: "ラッシュ", icon: "≋", wind: 13, beats: [0,8,16,24], end: 25, reach: 125, damage: 9, stun: 14, push: 45, stop: 3, step: 98, color: "#ff97b5", detail: "近距離で４連打。初撃が命中すると残り３発も必ずつながる。" },
-    crush: { label: "白桃砕き", type: "ヘビー", icon: "✦", wind: 29, beats: [0], end: 34, reach: 154, damage: 43, stun: 31, push: 435, stop: 9, step: 117, guardScale: 1.75, color: "#ffbd7d", detail: "大きく溜める一撃。ガードを大きく削るが、外すと隙が長い。" },
-    counter: { label: "返しの一閃", type: "カウンター", icon: "⤺", wind: 1, beats: [], end: 42, reach: 164, damage: 37, stun: 27, push: 352, stop: 8, step: 0, color: "#cbafff", detail: "構えてから約0.33秒間、相手の打撃に自動で反撃。読まれると隙が残る。" },
-    comet: { label: "飛桃ストレート", type: "接近攻撃", icon: "➜", wind: 19, beats: [0], end: 30, reach: 128, damage: 34, stun: 26, push: 331, stop: 7, step: 495, color: "#8de9f4", detail: "最大約157の距離を一気に詰める一発。接近中に打たれると中断する。" }
+    rush: { label: "百花ラッシュ", type: "ラッシュ", icon: "≋", wind: 13, beats: [0,8,16,24], end: 25, reach: 125, damage: 10, guardDamage:23.1, stun: 14, push: 45, stop: 3, step: 98, color: "#ff97b5", detail: "近距離で４連打。初撃が命中すると残り３発も必ずつながる。" },
+    crush: { label: "白桃砕き", type: "ヘビー", icon: "✦", wind: 29, beats: [0], end: 34, reach: 154, damage: 48, guardDamage:153.475, stun: 31, push: 435, stop: 9, step: 117, guardScale: 1.75, color: "#ffbd7d", detail: "大きく溜める一撃。ガードを大きく削るが、外すと隙が長い。" },
+    counter: { label: "返しの一閃", type: "カウンター", icon: "⤺", wind: 1, beats: [], end: 42, reach: 164, damage: 41, guardDamage:76.3, stun: 27, push: 352, stop: 8, step: 0, color: "#cbafff", detail: "構えてから約0.33秒間、相手の打撃に自動で反撃。読まれると隙が残る。" },
+    comet: { label: "飛桃ストレート", type: "接近攻撃", icon: "➜", wind: 19, beats: [0], end: 30, reach: 128, damage: 38, guardDamage:70.6, stun: 26, push: 331, stop: 7, step: 495, color: "#8de9f4", detail: "最大約157の距離を一気に詰める一発。接近中に打たれると中断する。" }
   };
   const specials = ["rush", "crush", "counter", "comet"];
   const cutins={

@@ -1,8 +1,8 @@
 (function(D){
   "use strict";
   const duration=720,forms={
-    thermae:{name:"テルマエ形態",color:"#a4e6d7",a:"bathwall",b:"geyser",cooldownA:300,cooldownB:240},
-    nozaki:{name:"野崎形態",color:"#bdcaff",a:"shot",b:"flank",cooldownA:210,cooldownB:300}
+    thermae:{name:"テルマエ形態",color:"#a4e6d7",a:"bathwall",b:"geyser",cooldownA:60,cooldownB:60},
+    nozaki:{name:"野崎形態",color:"#bdcaff",a:"shot",b:"flank",cooldownA:60,cooldownB:60}
   };
   const is=f=>f?.id==='headman';
   function initial(seed,index){return {form:null,pending:null,remaining:0,ending:false,cooldownA:0,cooldownB:0,ammo:0,rolls:0,rng:((seed>>>0)^Math.imul(index+1,0x9e3779b9))>>>0};}
@@ -61,7 +61,7 @@
     const attack=a.attack;if(!attack||attack.spawned||attack.age!==attack.wind)return;
     if(attack.key==='bathwall'){
       attack.spawned=true;const candidates=[145,185,225,265].map(d=>D.clamp(a.x+a.face*d,D.LIMIT.left+42,D.LIMIT.right-42));
-      const x=candidates.find(x=>(x-a.x)*a.face>55&&m.fighters.every(f=>Math.abs(f.x-x)>55)&&m.world.walls.every(w=>Math.abs(w.x-x)>135));
+      const x=candidates.find(x=>(x-a.x)*a.face>55&&m.fighters.every(f=>Math.abs(f.x-x)>55)&&m.world.walls.every(w=>w.owner===a.index||Math.abs(w.x-x)>135));
       if(x===undefined){m.emit('wallBlocked',a);return;}
       m.world.walls=m.world.walls.filter(w=>w.owner!==a.index);const wall={id:attack.id,owner:a.index,x,width:36,height:112,hp:28,ttl:150,age:0};m.world.walls.push(wall);m.emit('wallBuild',a,null,{point:x,entity:wall.id});
     }else if(attack.key==='shot'){

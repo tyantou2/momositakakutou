@@ -43,7 +43,7 @@ test('a late prewarm promise cannot pause the same element after a real cut-in h
  const h=harness(),v=h.videos['azure-video'];h.V.prepare([D.cast[2]],true);assert.equal(h.pending.length,1);v.readyState=4;const s=h.make('yan');h.V.start(s);for(let i=0;i<12;i++)h.advance(s);assert.equal(h.pending.length,2);h.pending[0].resolve();await Promise.resolve();assert.equal(v.paused,false);assert.equal(h.V.holds(s),true);
 });
 test('azure video preparation preserves attack travel, damage, guard, dodge, range and all three beats on either side',()=>{
- assert.deepEqual({wind:D.moves.azure.wind,beats:D.moves.azure.beats,damage:D.moves.azure.damage,reach:D.moves.azure.reach,push:D.moves.azure.push,stop:D.moves.azure.stop,end:D.moves.azure.end,step:D.moves.azure.step},{wind:21,beats:[0,7,14],damage:13,reach:134,push:35,stop:4,end:36,step:225});
+ assert.deepEqual({wind:D.moves.azure.wind,beats:D.moves.azure.beats,damage:D.moves.azure.damage,reach:D.moves.azure.reach,push:D.moves.azure.push,stop:D.moves.azure.stop,end:D.moves.azure.end,step:D.moves.azure.step},{wind:21,beats:[0,7,14],damage:15,reach:134,push:35,stop:4,end:36,step:225});
  for(const side of [0,1])for(const defense of ['hit','guard','spot','miss']){
   const outcomes=[];for(const prepared of [false,true]){
    const custom=D.normalize({id:'custom-proof',name:'判定確認',bonus:{stamina:4,dodge:3,guard:3}}),m=new D.Match({fighters:side?[custom,D.cast[2]]:[D.cast[2],custom],mode:'local'});m.phase='fight';const a=m.fighters[side],b=m.fighters[1-side];a.x=side?650:450;b.x=a.x+a.face*(defense==='miss'?550:120);a.meter=100;

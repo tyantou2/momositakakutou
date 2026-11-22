@@ -13,7 +13,7 @@
   };
   const icon = key => '<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">'+icons[key]+"</svg>";
   const modes = { cpu:"CPU対戦",local:"ローカル対戦",practice:"練習",online:"オンライン対戦" };
-  const actionNames = { left:"左",right:"右",jump:"ジャンプ",guard:"ガード",light:"弱",heavy:"強",back:"後ろ回避",spot:"その場回避",special:"必殺",skillA:"専用技A",skillB:"専用技B" };
+  const actionNames = { left:"左",right:"右",jump:"ジャンプ",guard:"ガード",light:"弱",heavy:"強",back:"後ろ回避",spot:"その場回避",special:"必殺",skillA:"専用技1",skillB:"専用技2" };
   const looks = { hair:"髪型",eyes:"表情",outfit:"服", skin:"肌の色", hairColor:"髪の色", cloth:"服の色",glove:"グローブの色" };
   const colorNames = {skin:["ピーチ","サンド","ブロンズ","ブラウン","ローズ"],hairColor:["墨色","紫檀","栗色","金色","青緑","銀色"],cloth:["紅","藍","緑","紫","琥珀","炭色"],glove:["桃","水色","橙","若草","藤","生成り"]};
   const storageKey = "toukasonjuku.boxing.v1";
@@ -502,7 +502,8 @@
       if(f.shift){
         const s=f.shift,panel=$('form'+i),spec=D.Headman.forms[s.form],time=(Math.ceil(s.remaining/6)/10).toFixed(1);
         panel.dataset.form=s.form||'normal';panel.querySelector('.form-title').textContent=(i===0?'1P ':'2P ')+(spec?spec.name+' · '+(s.ending?'攻撃後に解除':time+'秒')+(s.form==='nozaki'?' · 残弾'+s.ammo:''):s.pending?'二面変身・抽選中':'村長 · 通常形態');
-        const cd=n=>n?Math.ceil(n/6)/10+'秒':'使用可';panel.querySelector('.form-skills').textContent=spec?(s.form==='thermae'?'A 浴場壁 '+cd(s.cooldownA)+'　B 間欠泉 '+cd(s.cooldownB):'A 射撃 '+(s.ammo?cd(s.cooldownA):'弾切れ')+'　B 回り込み '+cd(s.cooldownB)):'ゲージ100%で変身。A・Bは変身中に使用';panel.querySelector('.form-duration i').style.width=s.remaining/720*100+'%';
+        const keys=D.controls[mode==='online'?0:i],keyA=D.keyLabels[keys.skillA],keyB=D.keyLabels[keys.skillB];
+        const cd=n=>n?Math.ceil(n/6)/10+'秒':'使用可';panel.querySelector('.form-skills').textContent=spec?(s.form==='thermae'?keyA+' 浴場壁 '+cd(s.cooldownA)+'　'+keyB+' 間欠泉 '+cd(s.cooldownB):keyA+' 射撃 '+(s.ammo?cd(s.cooldownA):'弾切れ')+'　'+keyB+' 回り込み '+cd(s.cooldownB)):'ゲージ100%で変身。'+keyA+'・'+keyB+'は変身中に使用';panel.querySelector('.form-duration i').style.width=s.remaining/720*100+'%';
       }
     });
     if(mode==="practice") {

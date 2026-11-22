@@ -46,7 +46,7 @@
       if(form==='thermae'){for(let i=0;i<5;i++){c.fillStyle='#c7c2a588';c.fillRect(x-130+i*57,596-i%2*15,49,20);}}
       else{c.strokeStyle='#b4ccff77';c.lineWidth=2;for(let i=0;i<4;i++)c.strokeRect(x-140+i*17,85+i*19,200,95);}
     }
-    const textX=reveal?(shot.a.face>0?880:400):640;c.textAlign='center';c.fillStyle='#ffe9bd';c.font='700 19px system-ui';c.fillText('村長  /  SUPER ART',textX,220);c.fillStyle='#fff4e9';c.font='900 62px system-ui';c.fillText('二面変身',textX,300);c.fillStyle=spec.color;c.font='800 31px system-ui';c.fillText(reveal?spec.name:'二つの戦術が交差する',textX,365);c.fillStyle='#d8d4e5';c.font='17px system-ui';c.fillText(reveal?'12秒間  専用技A・Bが解放':'50% / 50%',textX,408);
+    const textX=reveal?(shot.a.face>0?880:400):640;c.textAlign='center';c.fillStyle='#ffe9bd';c.font='700 19px system-ui';c.fillText('村長  /  SUPER ART',textX,220);c.fillStyle='#fff4e9';c.font='900 62px system-ui';c.fillText('二面変身',textX,300);c.fillStyle=spec.color;c.font='800 31px system-ui';c.fillText(reveal?spec.name:'二つの戦術が交差する',textX,365);c.fillStyle='#d8d4e5';c.font='17px system-ui';c.fillText(reveal?'12秒間  再使用1秒の専用技が解放':'50% / 50%',textX,408);
     if(animate&&age>58){c.globalAlpha=(age-58)/8*.65;c.fillStyle=spec.color;c.fillRect(0,0,1280,650);}c.restore();
   }
   D.HeadmanArt={world,pose,effects,transform};

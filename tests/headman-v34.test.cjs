@@ -34,12 +34,12 @@ test('bath walls block both players, are jumpable, break to heavy strikes and ca
  const h=formed('thermae'),ha=h.fighters[0],hb=h.fighters[1];h.tick({action:'skillA'});tick(h,24);const w=h.world.walls[0];ha.attack=null;ha.x=w.x-200;hb.x=w.x+110;h.tick(blank,{action:'heavy'});tick(h,62);h.tick(blank,{action:'heavy'});tick(h,32);assert.equal(h.world.walls.length,0);assert.ok(h.drain().some(e=>e.type==='wallBreak'));assert.equal(ha.tally.hit,0);
  const edge=formed('thermae');edge.fighters[0].x=D.LIMIT.right-1;edge.fighters[1].x=D.LIMIT.right-150;edge.separate();edge.tick({action:'skillA'});tick(edge,30);assert.ok(edge.world.walls.every(w=>w.x>D.LIMIT.left&&w.x<D.LIMIT.right));
 });
-test('a wall times out after 150 combat ticks and skill cooldown prevents duplication',()=>{
- const m=formed('thermae'),a=m.fighters[0];m.tick({action:'skillA'});tick(m,23);assert.equal(m.world.walls.length,1);const count=m.world.serial;tick(m,80,{action:'skillA'});assert.equal(m.world.serial,count);tick(m,100);assert.equal(m.world.walls.length,0);
+test('the one-second cooldown permits rebuilding without duplicate walls and the replacement expires naturally',()=>{
+ const m=formed('thermae'),a=m.fighters[0];m.tick({action:'skillA'});tick(m,23);assert.equal(m.world.walls.length,1);const first=m.world.walls[0].id,count=m.world.serial;tick(m,30,{action:'skillA'});assert.equal(m.world.serial,count);tick(m,6);m.tick({action:'skillA'});tick(m,23);assert.equal(m.world.walls.length,1);assert.notEqual(m.world.walls[0].id,first);tick(m,150);assert.equal(m.world.walls.length,0);
 });
 test('geyser has a visible 27-frame warning and one guardable, dodgeable launch',()=>{
  for(const defense of ['hit','guard','dodge']){const m=formed('thermae'),a=m.fighters[0],b=m.fighters[1];b.x=a.x+170;const hp=b.hp;m.tick({action:'skillB'},defense==='guard'?{guard:true}:blank);tick(m,23,blank,defense==='guard'?{guard:true}:blank);assert.equal(b.hp,hp);assert.equal(m.world.geysers[0].age,24);m.tick(blank,defense==='dodge'?{action:'spot'}:defense==='guard'?{guard:true}:blank);tick(m,5,blank,defense==='guard'?{guard:true}:blank);const events=m.drain();
-  if(defense==='hit'){assert.equal(a.tally.hit,1);assert.ok(b.vy>0);assert.ok(hp-b.hp>20);}if(defense==='guard'){assert.equal(b.tally.block,1);assert.ok(hp-b.hp<4);}if(defense==='dodge'){assert.equal(a.tally.hit,0);assert.equal(b.tally.evade,1);assert.equal(b.tally.perfect,1);}assert.equal(events.filter(e=>e.type==='geyserBurst').length,1);
+  if(defense==='hit'){assert.equal(a.tally.hit,1);assert.ok(b.vy>0);assert.ok(Math.abs(hp-b.hp-D.moves.geyser.damage*a.p.damage)<1e-8);}if(defense==='guard'){assert.equal(b.tally.block,1);assert.ok(hp-b.hp<4);}if(defense==='dodge'){assert.equal(a.tally.hit,0);assert.equal(b.tally.evade,1);assert.equal(b.tally.perfect,1);}assert.equal(events.filter(e=>e.type==='geyserBurst').length,1);
  }
 });
 test('Nozaki has exactly two shots per transformation with costs, range, guard and dodge counterplay',()=>{

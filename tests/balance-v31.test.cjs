@@ -14,12 +14,13 @@ test('heavy pressure breaks guard in three or four blocked blows before attacker
   assert.equal(D.moves.heavy.cost,24);
 });
 test('guard impact costs use separate normal formulas and retain every super formula',()=>{
-  for(const key of ['light','heavy','rush','crush','comet','azure']) {
+  const previousSuperDamage={rush:9,crush:43,counter:37,comet:34,azure:13};
+  for(const key of ['light','heavy',...Object.keys(previousSuperDamage)]) {
     const m=match(),[a,b]=m.fighters,move=D.moves[key];
     a.attack={key,move,age:move.wind,wind:move.wind};
     const initial=b.stamina;
     m.apply({kind:'block',a,b,move,point:b.x,lift:0});
-    const expected=(move.guardDamage ?? (move.damage*1.9+6)*(move.guardScale||1))*b.p.guardCost;
+    const expected=(previousSuperDamage[key]?(previousSuperDamage[key]*1.9+6)*(move.guardScale||1):move.guardDamage)*b.p.guardCost;
     assert.ok(Math.abs(initial-b.stamina-expected)<1e-8,key);
   }
 });
