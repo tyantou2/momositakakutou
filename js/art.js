@@ -1,7 +1,7 @@
 (function (D) {
   "use strict";
   const images = {};
-  for (const f of D.cast) {
+  for (const f of [...D.cast,...Object.values(D.headmanForms||{})]) {
     if (!f.image) continue;
     const img = new Image();
     img.src = f.image;
@@ -122,7 +122,9 @@
     const radius=height*.063;
     line(c,[start,end],outline,radius*1.48);
     line(c,[start,end],f.arm,radius*1.29);
-    glove(c,end[0],end[1],radius,mitt);
+    if(f.id.startsWith('headman')){
+      c.save();c.translate(end[0],end[1]);c.rotate(-.15);c.fillStyle='#17151f';c.fillRect(-radius*.9,-radius*.6,radius*1.65,radius*1.25);c.strokeStyle='#e54748';c.lineWidth=2;c.strokeRect(-radius*.9,-radius*.6,radius*1.65,radius*1.25);for(let i=0;i<4;i++)ellipse(c,radius*.68,-radius*.45+i*radius*.30,radius*.25,radius*.18,'#e8aa75',null);c.restore();
+    }else glove(c,end[0],end[1],radius,mitt);
   }
   function draw(c,f,x,y,h,face,pose={}) {
     c.save();
@@ -160,6 +162,7 @@
     }
   }
   function fighter(c,f,t,ground) {
+    const appearance=D.Headman.look(f);
     const atk=f.attack;
     const recoil=f.impact?Math.sin((18-f.impact)/18*Math.PI):0;
     const y=ground-f.lift-recoil*18;
@@ -167,22 +170,27 @@
     const active=atk && (atk.move.beats.some(beat=>Math.abs(atk.age-atk.wind-beat)<=4) || atk.spent && atk.age<32);
     const charge=atk && !active && atk.age<atk.wind;
     const evade=f.dodge>0;
+    const flankDash=atk?.key==='flank' && atk.age<atk.wind;
     const crush=f.data.id==="momokage" && atk?.key==="crush";
     const followThrough=crush && atk.age>=atk.wind?Math.max(0,1-(atk.age-atk.wind)/18):0;
-    const lean=recoil?-.13-recoil*.30:active?.14:charge?-.11:evade?-.20:f.exhaustion?.22:f.stun?-.13:followThrough*.14;
+    const lean=recoil?-.13-recoil*.30:flankDash?.24:active?.14:charge?-.11:evade?-.20:f.exhaustion?.22:f.stun?-.13:followThrough*.14;
     const rushPulse=atk?.key==="rush" && active?1-Math.min(...atk.move.beats.map(beat=>Math.abs(atk.age-atk.wind-beat)))/4:1;
-    const extend=active?Math.max(24,atk.move.reach*.54+f.p.reach)*(.30+.70*rushPulse):followThrough*57;
+    const extend=['shot','bathwall','geyser'].includes(atk?.key)?0:active?Math.max(24,atk.move.reach*.54+f.p.reach)*(.30+.70*rushPulse):followThrough*57;
     const h=f.p.bodyHeight;
     c.save();
+    if(flankDash){
+      for(let i=2;i>0;i--){c.globalAlpha=.11;draw(c,appearance,f.x-atk.travelFace*i*20,y,h,f.face,{tilt:lean,squash:.92});}
+      c.globalAlpha=1;
+    }
     if(atk?.key==="rush" && active && atk.age>=atk.wind+5) {
       const trails=atk.age>=atk.wind+13?3:1;
-      for(let i=trails;i>0;i--){c.globalAlpha=.13;draw(c,f.data,f.x-f.face*i*13,y,h,f.face,{tilt:lean,extend:extend*.6});}
+      for(let i=trails;i>0;i--){c.globalAlpha=.13;draw(c,appearance,f.x-f.face*i*13,y,h,f.face,{tilt:lean,extend:extend*.6});}
       c.globalAlpha=1;
     }
     if(atk?.key==="azure" && atk.age<=atk.wind+19) {
       for(let i=3;i>0;i--) {
         c.globalAlpha=.10*(4-i);
-        draw(c,f.data,f.x-f.face*i*27,y,h,f.face,{tilt:lean,extend});
+        draw(c,appearance,f.x-f.face*i*27,y,h,f.face,{tilt:lean,extend});
       }
       c.globalAlpha=1;c.strokeStyle="#9bfbff";c.lineWidth=2;
       for(let i=0;i<5;i++)line(c,[[f.x-f.face*(48+i*17),y-h*.35-i*15],[f.x+f.face*(45+extend),y-h*.38-i*15]],"#6bf2ff88",2);
@@ -196,7 +204,7 @@
     c.globalAlpha=1;
     if (evade && f.dodgeType==="back") {
       c.globalAlpha=.20;
-      draw(c,f.data,f.x+f.face*30,y,h,f.face,{tilt:lean});
+      draw(c,appearance,f.x+f.face*30,y,h,f.face,{tilt:lean});
       c.globalAlpha=1;
     }
     if (evade) c.globalAlpha=.70;
@@ -209,9 +217,9 @@
       }
     }
     if(f.hp<=0) c.globalAlpha=.64;
-    const squash=f.exhaustion?.88:f.guard?.955:evade && f.dodgeType==="spot"?.91:1;
+    const squash=f.exhaustion?.88:f.guard?.955:flankDash?.92:evade && f.dodgeType==="spot"?.91:1;
     const strike=active?(atk.key==="heavy" || atk.key==="azure" && atk.age>=atk.wind+12?2:1):0;
-    draw(c,f.data,f.x,y-bob,h,f.face,{tilt:f.hp<=0?-.42:lean,squash,extend,guard:f.guard,walk:f.moving?Math.sin(t*.29)*9:0,strike});
+    draw(c,appearance,f.x,y-bob,h,f.face,{tilt:f.hp<=0?-.42:lean,squash,extend,guard:f.guard,walk:f.moving?Math.sin(t*.29)*9:0,strike});
     if(crush && (charge || active)) {
       const progress=charge?atk.age/atk.wind:1;
       const radius=12+progress*18;
@@ -244,6 +252,7 @@
     counter:["#2c164d","#d6b7ff"], comet:["#0e324c","#9deaff"]
   };
   function cinematic(c,shot,animate) {
+    if(shot.key==='morph'){D.HeadmanArt.transform(c,shot,animate);return;}
     const {a,key,age}=shot;
     const f=a.data;
     const move=D.moves[key];
@@ -372,3 +381,4 @@
   }
   D.Art={draw,portrait,stage,fighter,cinematic,effects,impactFrame};
 })(Dojo);
+

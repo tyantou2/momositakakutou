@@ -1,14 +1,15 @@
 (function(D) {
   "use strict";
-  const actions=new Set(["light","heavy","jump","back","spot","special"]);
+  const actions=new Set(["light","heavy","jump","back","spot","special","skillA","skillB"]);
   const blank=()=>({axis:0,guard:false,action:null});
   const clean=c=>({axis:c?.axis===-1?-1:c?.axis===1?1:0,guard:c?.guard===true,action:actions.has(c?.action)?c.action:null});
   const same=(a,b)=>a.axis===b.axis && a.guard===b.guard && a.action===b.action;
-  const save=m=>structuredClone({fighters:m.fighters,phase:m.phase,ready:m.ready,seconds:m.seconds,freeze:m.freeze,frame:m.frame,cinematics:m.cinematics,ai:m.ai,result:m.result});
+  const save=m=>structuredClone({fighters:m.fighters,phase:m.phase,ready:m.ready,seconds:m.seconds,freeze:m.freeze,frame:m.frame,cinematics:m.cinematics,ai:m.ai,result:m.result,seed:m.seed,world:m.world});
+  function restore(m,state){Object.assign(m,structuredClone(state));for(const f of m.fighters)if(f.attack)f.attack.move=D.moves[f.attack.key];m.events=[];}
   function hash(state) {
     const data=[state.phase,state.ready,state.frame,state.freeze,state.seconds,state.cinematics.map(c=>[c.serial,c.age]),state.fighters.map(f=>[
       f.x,f.lift,f.vy,f.hp,f.stamina,f.meter,f.used,f.guard,f.stun,f.exhaustion,f.landing,f.dodge,f.dodgeInputFrame,f.perfectLock,f.opening,f.knock,f.recovery,
-      f.attack && [f.attack.key,f.attack.age,f.attack.spent,f.attack.connected?.index,f.attack.defense && [f.attack.defense.guard,f.attack.defense.dodge,f.attack.defense.perfect,f.attack.defense.resolved]],f.buffer,f.tally])];
+      f.attack && [f.attack.key,f.attack.age,f.attack.spent,f.attack.connected?.index,f.attack.defense && [f.attack.defense.guard,f.attack.defense.dodge,f.attack.defense.perfect,f.attack.defense.resolved],f.attack.id,f.attack.travelFace,f.attack.targetX,f.attack.spawned],f.buffer,f.tally,f.shift]),state.seed,state.world];
     const str=JSON.stringify(data);let n=2166136261;
     for(let i=0;i<str.length;i++)n=Math.imul(n^str.charCodeAt(i),16777619);
     return (n>>>0).toString(16);
@@ -65,7 +66,7 @@
       if(earliest<Infinity) {
         const snapshot=this.history.get(earliest);
         if(!snapshot || earliest<=this.confirmed){this.onError("同期を維持できませんでした。もう一度接続してください。");return;}
-        Object.assign(this.match,structuredClone(snapshot));this.match.events=[];
+        restore(this.match,snapshot);
         for(let f=earliest;f<this.frame;f++)this.simulate(f);
         this.rollbacks++;
       }
@@ -90,5 +91,5 @@
       for(const map of [this.local,this.remote,this.hashes,this.peerHashes])for(const f of map.keys())if(f<this.frame-240)map.delete(f);
     }
   }
-  D.Rollback=Rollback;D.netState={save,hash,clean};
+  D.Rollback=Rollback;D.netState={save,hash,clean,restore};
 })(globalThis.Dojo);

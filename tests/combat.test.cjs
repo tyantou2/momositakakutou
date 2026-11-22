@@ -53,7 +53,7 @@ test("movement and independent actions are bound to each side",()=>{
   tick(m,12,blank,action(null,-1));
   assert.equal(a.x,movedA);
   assert.ok(b.x<oldB-30);
-  assert.equal(new Set(D.controls.flatMap(m=>Object.values(m))).size,18);
+  assert.equal(new Set(D.controls.flatMap(m=>Object.values(m))).size,22);
   assert.equal(D.controls[0].left,"ArrowLeft");
   assert.equal(D.controls[0].right,"ArrowRight");
   assert.equal(D.controls[0].spot,"KeyW");

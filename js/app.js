@@ -13,7 +13,7 @@
   };
   const icon = key => '<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">'+icons[key]+"</svg>";
   const modes = { cpu:"CPU対戦",local:"ローカル対戦",practice:"練習",online:"オンライン対戦" };
-  const actionNames = { left:"左",right:"右",jump:"ジャンプ",guard:"ガード",light:"弱",heavy:"強",back:"後ろ回避",spot:"その場回避",special:"必殺" };
+  const actionNames = { left:"左",right:"右",jump:"ジャンプ",guard:"ガード",light:"弱",heavy:"強",back:"後ろ回避",spot:"その場回避",special:"必殺",skillA:"専用技A",skillB:"専用技B" };
   const looks = { hair:"髪型",eyes:"表情",outfit:"服", skin:"肌の色", hairColor:"髪の色", cloth:"服の色",glove:"グローブの色" };
   const colorNames = {skin:["ピーチ","サンド","ブロンズ","ブラウン","ローズ"],hairColor:["墨色","紫檀","栗色","金色","青緑","銀色"],cloth:["紅","藍","緑","紫","琥珀","炭色"],glove:["桃","水色","橙","若草","藤","生成り"]};
   const storageKey = "toukasonjuku.boxing.v1";
@@ -353,6 +353,7 @@
     const group=node("div","keyline");
     group.append(node("strong","",index===0?"1P":"2P"));
     for (const [action,code] of Object.entries(D.controls[index])) {
+        if(action.startsWith('skill')&&getFighter(index).id!=='headman')continue;
       const pair=node("span");
       pair.append(node("kbd","",D.keyLabels[code]),node("small","",actionNames[action]));group.append(pair);
     }
@@ -422,7 +423,8 @@
     D.Audio.stopVoices();D.Audio.init();
     D.Audio.resetSupers();
     onlineSide=options?.side||0;onlineEnded=false;
-    match=new D.Match({fighters:options?.fighters || [getFighter(0),getFighter(1)],mode:mode==="online"?"local":mode,difficulty,dummy,online:mode==="online"});
+    match=new D.Match({fighters:options?.fighters || [getFighter(0),getFighter(1)],mode:mode==="online"?"local":mode,difficulty,dummy,online:mode==="online",seed:options?.seed??crypto.getRandomValues(new Uint32Array(1))[0]});
+    document.body.classList.toggle('has-headman',match.fighters.some(f=>f.shift));
     if(mode==="online")network.attachMatch(match,{delay:options.delay,onEvents:consumeEvents});
     paused=false;fx=[];shake=0;accumulator=0;clearKeys();
     $("battle-title").textContent=modes[mode];
@@ -445,6 +447,8 @@
       }
       group.append(node("small","spell-label"),node("div","fighter-state"));
     }
+    $("form-hud").replaceChildren();$("form-hud").hidden=!match.fighters.some(f=>f.shift);
+    for(const f of match.fighters)if(f.shift){const panel=node('div','form-panel');panel.id='form'+f.index;panel.append(node('strong','form-title'),node('small','form-skills'));const bar=node('div','form-duration');bar.append(node('i'));panel.append(bar);$("form-hud").append(panel);}
     show("battle");hud();D.Audio.intro(match.fighters);
     D.Music.battle();
     $("pause").focus({preventScroll:true});
@@ -474,7 +478,7 @@
     return ["",""];
   }
   function hud() {
-    const self=match.fighters[mode==="online"?onlineSide:0];D.Touch.update(self.meter===100&&(mode==="practice"||self.used<D.RULES.superLimit));
+    const self=match.fighters[mode==="online"?onlineSide:0];D.Touch.update(!self.shift?.form&&self.meter===100&&(mode==="practice"||self.used<D.RULES.superLimit),self);
     $("audio-resume").hidden=!settings.sound||paused||D.Audio.status().state==="running";
     if(mode==="online")$("net-status").textContent=network.core?(network.core.canAdvance()?"YOU = "+(onlineSide+1)+"P　"+(network.rtt?"接続 "+network.rtt+"ms":"接続を計測中"):"通信待ち…　回線を同期しています"):"接続終了";
     const seconds=Math.ceil(match.seconds);
@@ -489,12 +493,17 @@
         if(key==="super") bar.classList.toggle("ready",f.meter===100);
         if(key==="sta") bar.classList.toggle("low",pct<24 || !!f.exhaustion);
       }
-      const suffix=mode!=="practice" && f.used>=D.RULES.superLimit ? "使用上限" : f.meter===100?"発動可能":Math.floor(f.meter)+"%";
+      const suffix=f.shift?.form?'変身中・再変身不可':mode!=="practice" && f.used>=D.RULES.superLimit ? "使用上限" : f.meter===100?"発動可能":Math.floor(f.meter)+"%";
       group.querySelector(".spell-label").textContent=D.moves[f.data.special].label+" ・ "+suffix;
       const [state,text]=match.phase==="fight"?status(f):["",""];
       const label=group.querySelector(".fighter-state");
       label.dataset.state=state;
       label.textContent=text;
+      if(f.shift){
+        const s=f.shift,panel=$('form'+i),spec=D.Headman.forms[s.form],time=(Math.ceil(s.remaining/6)/10).toFixed(1);
+        panel.dataset.form=s.form||'normal';panel.querySelector('.form-title').textContent=(i===0?'1P ':'2P ')+(spec?spec.name+' · '+(s.ending?'攻撃後に解除':time+'秒')+(s.form==='nozaki'?' · 残弾'+s.ammo:''):s.pending?'二面変身・抽選中':'村長 · 通常形態');
+        const cd=n=>n?Math.ceil(n/6)/10+'秒':'使用可';panel.querySelector('.form-skills').textContent=spec?(s.form==='thermae'?'A 浴場壁 '+cd(s.cooldownA)+'　B 間欠泉 '+cd(s.cooldownB):'A 射撃 '+(s.ammo?cd(s.cooldownA):'弾切れ')+'　B 回り込み '+cd(s.cooldownB)):'ゲージ100%で変身。A・Bは変身中に使用';panel.querySelector('.form-duration i').style.width=s.remaining/720*100+'%';
+      }
     });
     if(mode==="practice") {
       const t=match.fighters[0].tally;
@@ -561,8 +570,10 @@
     context.save();
     if(settings.motion && !paused && shake>.3 && !match.cinematic) context.translate(Math.sin(now)*shake,Math.cos(now)*shake*.44);
     D.Art.stage(context,542);
-    for(const f of match.fighters) D.Art.fighter(context,f,match.frame,542);
+    D.HeadmanArt.world(context,match,542);
+    for(const f of match.fighters){D.Art.fighter(context,f,match.frame,542);D.HeadmanArt.pose(context,f,542);}
     D.Art.effects(context,fx,542);
+    D.HeadmanArt.effects(context,fx,542);
     if(settings.motion && !match.cinematic) D.Art.impactFrame(context,fx,542);
     if(match.cinematic && !D.VideoCutIn.draw(context,match.cinematic)) D.Art.cinematic(context,match.cinematic,settings.motion);
     context.restore();
@@ -636,7 +647,7 @@
     keys.add(e.code);
     if(e.repeat) return;
     const map=D.controls[index];
-    const press=["light","heavy","jump","back","spot","special"].find(key=>map[key]===e.code);
+    const press=["light","heavy","jump","back","spot","special","skillA","skillB"].find(key=>map[key]===e.code);
     if(press) queue[index]=press;
   });
   document.addEventListener("keyup",e=>keys.delete(e.code));

@@ -1,6 +1,6 @@
 (function(D) {
   "use strict";
-  const VERSION="dojo-3.3",PREFIX="momoshita-v33-";
+  const VERSION="dojo-3.4",PREFIX="momoshita-v34-";
   const alphabet="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   const token=()=>Array.from(crypto.getRandomValues(new Uint8Array(8)),n=>alphabet[n%alphabet.length]).join("");
   function fighter(record) {
@@ -75,15 +75,15 @@
     maybeStart() {
       if(this.side===0 && this.status==="connected" && this.localReady && this.remoteReady) {
         const delay=D.clamp(Math.ceil(this.rtt/2/16.667)+1,3,5);
-        this.begin({type:"start",id:token(),fighters:[this.selfFighter,this.remoteFighter],delay},true);
+        this.begin({type:"start",id:token(),fighters:[this.selfFighter,this.remoteFighter],delay,seed:crypto.getRandomValues(new Uint32Array(1))[0]},true);
       }
     }
     begin(message,broadcast=false) {
-      if(this.status!=="connected" || !this.localReady || !this.remoteReady)return;
+      if(this.status!=="connected" || !this.localReady || !this.remoteReady || !Number.isInteger(message.seed) || message.seed<0 || message.seed>0xffffffff)return;
       if(broadcast)this.send(message);
       this.round=message.id;this.change("battle","対戦中");
       const fighters=message.fighters.map(fighter);
-      this.callbacks.start?.({fighters,side:this.side,delay:D.clamp(message.delay,3,5)});
+      this.callbacks.start?.({fighters,side:this.side,delay:D.clamp(message.delay,3,5),seed:message.seed});
     }
     receive(data) {
       if(!data || typeof data!=="object" || data.v!==VERSION)return;

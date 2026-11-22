@@ -124,6 +124,7 @@
       case "fight": tone(415,622,.19,.13,"triangle"); break;
       case "swing": thump(.11,e.key==="heavy"?.11:.064,1800); callout(e.a,"attack"); break;
       case "special":
+        if(e.key==='morph'){tone(170,520,.42,.09,'triangle');tone(330,680,.32,.07,'sine',.18);break;}
         if(e.key==="azure") {tone(180,1000,.35,.13,"sawtooth");tone(740,1480,.20,.08,"sine",.15);break;}
         if(D.movieFor(e)) {
           tone(80,210,.80,.11,"sine");thump(.18,.10,1000);break;
@@ -132,6 +133,14 @@
       case "crushRelease": thump(.13,.12,1400);tone(145,360,.13,.11,"triangle");break;
       case "rushRelease": thump(.10,.10,1900);tone(280,650,.10,.10,"triangle");break;
       case "azureRelease": thump(.10,.11,2100);tone(420,1080,.12,.10,"triangle");break;
+      case 'transform': thump(.22,.12,e.form==='thermae'?700:1900);tone(e.form==='thermae'?240:520,e.form==='thermae'?520:230,.22,.09,'triangle');break;
+      case 'transformEnd': thump(.17,.06,1000);break;
+      case 'wallBuild': thump(.25,.16,400);tone(90,45,.22,.10,'triangle');break;
+      case 'wallHit': thump(.10,.11,1100);break;
+      case 'wallBreak': case 'wallFade': thump(.20,.09,1800);break;
+      case 'geyserBurst': thump(.34,.15,3000);tone(220,430,.20,.06,'sine');break;
+      case 'gunshot': thump(.075,.15,4300);tone(175,72,.10,.10,'triangle');break;
+      case 'skill': if(e.key==='flank'){thump(.08,.07,2100);tone(160,620,.13,.06,'sine');}else if(e.key==='geyser')tone(280,360,.10,.05,'sine');else if(e.key==='shot')thump(.04,.05,2700);break;
       case "hit":
       case "break":
       case "counter":

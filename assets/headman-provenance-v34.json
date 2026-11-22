@@ -1,0 +1,35 @@
+{
+  "date": "2026-11-22",
+  "mode": "Built-in image_gen edit",
+  "transparent_background": true,
+  "source": "Two illustrations supplied by the user. No official program stills, voices, video or logos fetched.",
+  "postprocess": "Preserved RGBA alpha; FFmpeg lossless WebP conversion. Crops and attachment anchors are data in js/data.js.",
+  "masters": "PNG masters retained locally in work/headman-sources; user originals retained unchanged.",
+  "rights": "Permission from rights holders of referenced works has not been independently confirmed. See v3.4実装レポート.md.",
+  "assets": [
+    {
+      "form": "normal",
+      "input": "ファイティンググローブの構え姿.png",
+      "output": "assets/headman-normal-v34.webp",
+      "bytes": 675230,
+      "sha256": "33d9d24c7ac8b0d8baf8115332e24b99006787106f886103ba264e2a479d1520",
+      "prompt": "Use case: background-extraction / identity-preserve. Edit target is the supplied illustration. Produce a meticulous transparent-background game sprite cutout of the single man in navy hoodie, backpack straps, dark cargo pants, white sneakers. This is a precise extraction, not a redesign or new character illustration. Preserve the original person's face contour, eyes, nose and mouth positions, facial expression, exact hairstyle and hair strands, black fingerless fighting gloves with red trim, original clothing, stance, body proportions and full feet. Keep original drawing and shading as closely as possible. Remove ONLY all background, floor shadow, labels, caption plates and lettering outside the figure. Do not include any other person. Fully include hair, fingers, garments and both shoes with a clean alpha channel, no halo, no floor, no drop shadow, no checkerboard. Center the isolated complete figure in a portrait canvas with a little transparent margin. Do not invent or modify face/clothing. Preserve hoodie chest lettering when present. Output one standalone full-body figure."
+    },
+    {
+      "form": "thermae",
+      "input": "テルマエとVIVANTの格闘スタイル比較.png",
+      "output": "assets/headman-thermae-v34.webp",
+      "bytes": 914892,
+      "sha256": "ef2b0b8b076391802f39e38233bf52d1d691411c03a95ed89bd03e8f34f105e8",
+      "prompt": "Use case: background-extraction / identity-preserve. Edit target is the supplied illustration. Produce a meticulous transparent-background game sprite cutout of ONLY the LEFT man in cream Roman bath draped robe and brown sandals; remove the other man entirely. This is a precise extraction, not a redesign or new character illustration. Preserve the original person's face contour, eyes, nose and mouth positions, facial expression, exact hairstyle and hair strands, black fingerless fighting gloves with red trim, original clothing, stance, body proportions and full feet. Keep original drawing and shading as closely as possible. Remove ONLY all background, floor shadow, labels, caption plates and lettering outside the figure. Do not include any other person. Fully include hair, fingers, garments and both shoes with a clean alpha channel, no halo, no floor, no drop shadow, no checkerboard. Center the isolated complete figure in a portrait canvas with a little transparent margin. Do not invent or modify face/clothing. Preserve hoodie chest lettering when present. Output one standalone full-body figure."
+    },
+    {
+      "form": "nozaki",
+      "input": "テルマエとVIVANTの格闘スタイル比較.png",
+      "output": "assets/headman-nozaki-v34.webp",
+      "bytes": 529292,
+      "sha256": "f0923f10090b9cba5c19915fdd160713022c172a87af2981f526ef88e104ed4c",
+      "prompt": "Use case: background-extraction / identity-preserve. Edit target is the supplied illustration. Produce a meticulous transparent-background game sprite cutout of ONLY the RIGHT man in dark charcoal suit, white shirt, black shoes; remove the other man entirely. This is a precise extraction, not a redesign or new character illustration. Preserve the original person's face contour, eyes, nose and mouth positions, facial expression, exact hairstyle and hair strands, black fingerless fighting gloves with red trim, original clothing, stance, body proportions and full feet. Keep original drawing and shading as closely as possible. Remove ONLY all background, floor shadow, labels, caption plates and lettering outside the figure. Do not include any other person. Fully include hair, fingers, garments and both shoes with a clean alpha channel, no halo, no floor, no drop shadow, no checkerboard. Center the isolated complete figure in a portrait canvas with a little transparent margin. Do not invent or modify face/clothing. Preserve hoodie chest lettering when present. Output one standalone full-body figure."
+    }
+  ]
+}

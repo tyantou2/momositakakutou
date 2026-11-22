@@ -18,6 +18,11 @@
     tank: { name: "タフ", speed: 2, power: 6, bonus: { stamina: 4, dodge: 1, guard: 5 } }
   };
   const moves = {
+    morph:{label:"二面変身",type:"村長専用",icon:"◇",wind:1,beats:[],end:66,reach:0,damage:0,stun:0,push:0,stop:0,step:0,color:"#83e4d8",detail:"各50%でテルマエ／野崎へ12秒変身。形態は選べない。通常攻撃に専用技A・Bが追加される。"},
+    bathwall:{label:"ローマ式浴場建築",wind:22,beats:[0],end:28,cost:18,reach:0,damage:0,stun:0,push:0,stop:0,step:0,color:"#b8eedf"},
+    geyser:{label:"間欠泉噴出",wind:27,beats:[0],end:30,cost:24,reach:65,damage:22,stun:20,push:95,stop:4,step:0,color:"#9beaff"},
+    shot:{label:"公安・制圧射撃",wind:14,beats:[0],end:32,cost:18,reach:420,damage:20,stun:16,push:135,stop:3,step:0,color:"#ffd29a"},
+    flank:{label:"公安・回り込み制圧",wind:16,beats:[0],end:34,cost:22,reach:100,damage:18,stun:20,push:235,stop:5,step:900,color:"#bac8ff"},
     azure: { label:"蒼閃・一文字", type:"ゃん専用", icon:"⚡", wind:21, beats:[0,7,14], end:36, reach:134, damage:13, stun:14, push:35, stop:4, step:225, color:"#6bf2ff", detail:"蒼い残像を残して踏み込む三連撃。初撃命中で連続ヒットし、最後の一撃で吹き飛ばす。外した後は隙が大きい。" },
     light: { label: "弱パンチ", wind: 10, beats: [0], end: 17, cost: 10, guardDamage:4, reach: 96, damage: 7, stun: 12, push: 78, stop: 3, step: 116 },
     heavy: { label: "強パンチ", wind: 24, beats: [0], end: 33, cost: 24, guardDamage:47.5, reach: 133, damage: 16, stun: 26, push: 310, stop: 8, step: 132 },
@@ -84,6 +89,12 @@
   ];
   cast.push(rosterEntry({id:"yan",name:"ゃん",height:6,speed:6,power:5,bonus:{stamina:4,dodge:3,guard:3}},
     {special:"azure",image:"assets/yan.webp",epithet:"蒼閃を放つ桃下の挑戦者",short:"蒼閃の挑戦者",accent:"#6bf2ff",arm:"#23263e",mitt:"#343b4c",sprite:{crop:[22,55,548,760],align:.50,glove:[.88,.44],shoulder:[.64,.52]}}));
+  cast.push(rosterEntry({id:"headman",name:"村長",height:9,speed:4,power:6,bonus:{stamina:4,dodge:2,guard:4}},
+    {special:"morph",image:"assets/headman-normal-v34.webp",epithet:"二つの戦術へ変身する長身の指揮者",short:"二面変身",accent:"#9de6d6",arm:"#252132",mitt:"#18171f",sprite:{crop:[73,28,861,1493],align:.50,glove:[.77,.33],shoulder:[.66,.28]}}));
+  const headmanForms={
+    thermae:{...cast[3],id:"headman-thermae",name:"村長",image:"assets/headman-thermae-v34.webp",arm:"#e3ccaa",sprite:{crop:[176,8,648,1517],align:.50,glove:[.82,.30],shoulder:[.69,.25]}},
+    nozaki:{...cast[3],id:"headman-nozaki",name:"村長",image:"assets/headman-nozaki-v34.webp",arm:"#25212c",sprite:{crop:[191,10,671,1518],align:.50,glove:[.82,.30],shoulder:[.67,.26]}}
+  };
   function profile(fighter) {
     const { speed, power, height } = fighter;
     const toughness = 11 - speed;
@@ -101,13 +112,15 @@
     };
   }
   const controls = [
-    { left:"ArrowLeft", right:"ArrowRight", jump:"ArrowUp", guard:"ArrowDown", light:"KeyS", heavy:"KeyD", back:"KeyQ", spot:"KeyW", special:"KeyE" },
-    { left:"KeyJ", right:"KeyL", jump:"KeyI", guard:"KeyK", light:"KeyN", heavy:"KeyM", back:"KeyU", spot:"KeyO", special:"KeyP" }
+    { left:"ArrowLeft", right:"ArrowRight", jump:"ArrowUp", guard:"ArrowDown", light:"KeyS", heavy:"KeyD", back:"KeyQ", spot:"KeyW", special:"KeyE",skillA:"KeyA",skillB:"KeyF" },
+    { left:"KeyJ", right:"KeyL", jump:"KeyI", guard:"KeyK", light:"KeyN", heavy:"KeyM", back:"KeyU", spot:"KeyO", special:"KeyP",skillA:"KeyY",skillB:"KeyH" }
   ];
   const keyLabels = { ArrowLeft:"←",ArrowRight:"→",ArrowUp:"↑",ArrowDown:"↓",
-    KeyQ:"Q",KeyW:"W",KeyE:"E",KeyS:"S",KeyD:"D",
+    KeyQ:"Q",KeyW:"W",KeyE:"E",KeyS:"S",KeyD:"D",KeyA:"A",KeyF:"F",KeyY:"Y",KeyH:"H",
     KeyJ:"J",KeyL:"L",KeyI:"I",KeyK:"K",KeyN:"N",KeyM:"M",KeyU:"U",KeyO:"O",KeyP:"P" };
-  const api = { clamp, stats, presets, moves, specials, cutins, movieFor, voiceSlots, colors, looks, bonus, normalize, cast, profile, controls, keyLabels };
+  const api = { clamp, stats, presets, moves, specials, cutins, movieFor, voiceSlots, colors, looks, bonus, normalize, cast, headmanForms, profile, controls, keyLabels };
   root.Dojo = api;
   if (typeof module === "object") module.exports = api;
 })(globalThis);
+
+

@@ -1,6 +1,7 @@
 (function (root) {
   "use strict";
   const D = root.Dojo;
+  if(typeof module==='object'&&!D.Headman)require('./headman.js');
   const LIMIT = { left:154, right:1126, spawn:[410,870], round:120, ready:108, dt:1/60 };
   const RULES = {
     exhaustion:90, jump:665, gravity:1440, superLimit:2, cutIn:66, openingCharge:24,
@@ -11,18 +12,20 @@
   const passive = () => ({ axis:0, guard:false });
   const gap = (a,b) => Math.abs(a.x-b.x);
   const reach = (a,b,move) => move.reach+a.p.reach+b.p.hurt;
-  function boxer(data, index) {
+  function boxer(data, index, seed) {
     const p = D.profile(data);
     return {
       data,p,index,x:LIMIT.spawn[index],lift:0,vy:0,hp:p.hp,stamina:p.staminaMax,meter:RULES.openingCharge,used:0,
       face:index?-1:1,guard:false,attack:null,stun:0,impact:0,exhaustion:0,landing:0,captured:null,dodge:0,dodgeType:null,
       dodgeInputFrame:-Infinity,dodgeInvThreshold:0,perfectLock:0,opening:0,perfectFlash:0,
-      knock:0,recovery:0,buffer:null,moving:0,tally:{hit:0,block:0,evade:0,perfect:0,dealt:0}
+      knock:0,recovery:0,buffer:null,moving:0,tally:{hit:0,block:0,evade:0,perfect:0,dealt:0},
+      ...(D.Headman.is(data)?{shift:D.Headman.initial(seed,index)}:{})
     };
   }
   class Match {
-    constructor({ fighters, mode, difficulty = "normal", dummy = "idle", random = Math.random, online=false }) {
-      this.fighters = fighters.map(boxer);
+    constructor({ fighters, mode, difficulty = "normal", dummy = "idle", random = Math.random, online=false, seed=0x5c71ab29 }) {
+      this.seed=seed>>>0;this.world=D.Headman.world();
+      this.fighters = fighters.map((f,i)=>boxer(f,i,this.seed));
       this.mode=mode;
       this.online=online;
       this.difficulty=difficulty;
@@ -79,10 +82,12 @@
         return;
       }
       this.frame++;
+      D.Headman.beforeFrame(this);
       this.seconds=Math.max(0,LIMIT.round-this.frame*LIMIT.dt);
       const second=this.mode==="local"?p2:this.cpu(b,a);
       const openings=[this.update(a,this.defenseCommand(a,p1)),this.update(b,this.defenseCommand(b,second))].filter(Boolean);
       this.separate();
+      D.Headman.constrain(this);
       const hits=[this.strike(a,b),this.strike(b,a)].filter(Boolean);
       // A landed multi-hit special takes priority over a simultaneous counterhit.
       hits.sort((x,y)=>Number(y.kind==="hit" && y.move.beats.length>1)-Number(x.kind==="hit" && x.move.beats.length>1));
@@ -92,6 +97,7 @@
       }
       this.expire(a);
       this.expire(b);
+      D.Headman.afterFrame(this);
       if (this.mode==="practice") {
         for (const f of this.fighters) {
           if(f.hp<=0) f.hp=f.p.hp;
@@ -113,7 +119,7 @@
         const target=this.fighters[1-shot.a.index];
         shot.a.attack.defense={
           target,guard:target.guard,
-          dodge:target.dodge>0 && target.dodge>=target.dodgeInvThreshold,
+          dodge:target.dodge>0 && target.dodge>=target.dodgeInvThreshold || D.Headman.invulnerable(target),
           perfect:target.perfectLock===0 && this.frame-target.dodgeInputFrame<RULES.perfectWindow,
           resolved:false
         };
@@ -139,6 +145,7 @@
       if (!shot || this.cinematic!==shot) return false;
       const attack=shot.a.attack;
       const clip=D.movieFor(shot);
+      if(shot.key==='morph')D.Headman.complete(this,shot.a);
       if(prepared && clip && attack?.key===shot.key) {
         // The film supplies the wind-up. Preserve its total travel in the final lunge.
         const remaining=attack.wind-attack.age;
@@ -212,7 +219,7 @@
       }
       if (f.attack) {
         f.attack.age++;
-        if (f.attack.age<=f.attack.wind) f.x+=f.face*f.attack.move.step*(f.attack.stepScale || 1)*LIMIT.dt;
+        if (f.attack.age<=f.attack.wind && !D.Headman.move(f)) f.x+=f.face*f.attack.move.step*(f.attack.stepScale || 1)*LIMIT.dt;
       }
       if(f.lift>0 || f.vy>0) {
         f.vy-=RULES.gravity*LIMIT.dt;
@@ -236,6 +243,7 @@
     }
     begin(f,action,inputFrame) {
       const special=action==="special";
+      if(special&&f.shift?.form){this.emit('skillUnavailable',f);return null;}
       if (special && this.mode!=="practice" && f.used>=RULES.superLimit) {
         this.emit("spent",f);
         return null;
@@ -250,7 +258,9 @@
         return null;
       }
       const dodge=action==="back" || action==="spot";
-      const key=special?f.data.special:action;
+      const skill=action==='skillA'||action==='skillB'?D.Headman.skill(this,f,action):null;
+      if((action==='skillA'||action==='skillB')&&!skill)return null;
+      const key=skill?skill.key:special?f.data.special:action;
       const move=D.moves[key];
       if (!dodge && !move) return null;
       const cost=dodge?(action==="back"?22:16):(move.cost || 0);
@@ -268,44 +278,51 @@
         this.emit("step",f,null,{key:action});
         return null;
       }
-      const wind=special?move.wind:Math.round(move.wind*f.p.wind);
+      const wind=special||skill?move.wind:Math.round(move.wind*f.p.wind);
       f.attack={key,move,wind,age:0,spent:false};
+      if(skill)D.Headman.accepted(this,f,skill,f.attack);
       if (special) {
         f.meter=0;
         f.used++;
-        return {a:f,key,age:0};
+        const form=key==='morph'?D.Headman.drawForm(f):undefined;
+        return {a:f,key,age:0,...(form?{form}:{})};
       }
       this.emit("swing",f,null,{key});
       return null;
     }
     separate() {
       const [a,b]=this.fighters;
+      D.Headman.constrain(this);
       const spacing=.98*(a.p.hurt+b.p.hurt)+12;
       const center=D.clamp((a.x+b.x)/2,LIMIT.left+spacing/2,LIMIT.right-spacing/2);
-      if (b.x-a.x<spacing) {
-        a.x=center-spacing/2;
-        b.x=center+spacing/2;
+      const [left,right]=a.x<=b.x?[a,b]:[b,a];
+      if (right.x-left.x<spacing && !D.Headman.crossing(this)) {
+        left.x=center-spacing/2;
+        right.x=center+spacing/2;
       } else {
-        a.x=D.clamp(a.x,LIMIT.left,LIMIT.right-spacing);
-        b.x=D.clamp(b.x,LIMIT.left+spacing,LIMIT.right);
+        left.x=D.clamp(left.x,LIMIT.left,LIMIT.right-(D.Headman.crossing(this)?0:spacing));
+        right.x=D.clamp(right.x,LIMIT.left+(D.Headman.crossing(this)?0:spacing),LIMIT.right);
       }
+      if(a.x!==b.x){a.face=a.x<b.x?1:-1;b.face=-a.face;}
     }
     strike(a,b) {
       const attack=a.attack;
       if (!attack || !attack.move.beats.includes(attack.age-attack.wind)) return null;
       const {move}=attack;
+      if(['bathwall','shot','geyser'].includes(attack.key)){D.Headman.release(this,a);return null;}
       const defense=attack.defense && !attack.defense.resolved?attack.defense:null;
       if(defense) defense.resolved=true;
       if (attack.connected===b) {
         return {kind:"hit",a,b,move,point:b.x-a.face*b.p.hurt*.54,lift:b.lift};
       }
+      if(D.Headman.blockStrike(this,a,b,move))return null;
       const distance=gap(a,b);
       const level=a.lift+a.p.bodyHeight*.40;
       const y=level-b.lift;
       if(distance>reach(a,b,move) || y < -24 || y > b.p.bodyHeight*.81+23) {
         return {kind:"miss",a,b,move,point:a.x+a.face*(move.reach+a.p.reach),lift:a.lift};
       }
-      if (defense?defense.dodge:b.dodge>=b.dodgeInvThreshold && b.dodge>0) {
+      if (defense?defense.dodge:b.dodge>=b.dodgeInvThreshold && b.dodge>0 || D.Headman.invulnerable(b)) {
         const perfect=defense?defense.perfect:b.perfectLock===0 && this.frame-b.dodgeInputFrame<RULES.perfectWindow;
         return {kind:perfect?"perfect":"evade",a,b,move,point:b.x,lift:b.lift};
       }
@@ -417,9 +434,11 @@
       this.ai.reconsider=this.frame+(easy?15:10)+Math.floor(this.random()*8);
       const roll=this.random();
       const cmd=passive();
+      const ability=D.Headman.cpu(this,f,other,roll);
+      if(ability){cmd.action=ability;this.ai.command=cmd;return cmd;}
       const ready=f.meter===100 && (this.mode==="practice" || f.used<RULES.superLimit);
       if (f.exhaustion || f.stamina<27) {
-        cmd.axis=distance<heavy+30?1:0;
+        cmd.axis=distance<heavy+30?-f.face:0;
       } else if (danger && !f.attack && roll<(easy?.30:.60)) {
         if (!easy && ready && f.data.special==="counter") cmd.action="special";
         else if (roll<.065) cmd.action="back";
@@ -429,11 +448,12 @@
         (distance<reach(f,other,D.moves[f.data.special])+28 || f.data.special==="comet" && distance<310) && roll>.38) {
         cmd.action="special";
       } else if (distance>light-10) {
-        cmd.axis=-1;
+        cmd.axis=f.face;
+        if(this.world.walls.some(w=>(w.x-f.x)*f.face>0&&Math.abs(w.x-f.x)<100)&&roll>.38)cmd.action='jump';
         if (distance<heavy+20 && roll>.62 && !f.attack) cmd.action="heavy";
       } else if (!f.attack && !f.stun) {
         if (roll<(easy?.40:.21)) {
-          cmd.axis=roll<.09?1:0;
+          cmd.axis=roll<.09?-f.face:0;
           cmd.guard=roll>.11;
         } else cmd.action=roll>.72?"heavy":"light";
       }
@@ -450,7 +470,8 @@
       this.emit("over",winner===null?null:this.fighters[winner]);
     }
     resetPractice() {
-      this.fighters=this.fighters.map(f=>boxer(f.data,f.index));
+      this.fighters=this.fighters.map(f=>{const fresh=boxer(f.data,f.index,this.seed);if(f.shift){fresh.shift.rng=f.shift.rng;fresh.shift.rolls=f.shift.rolls;}return fresh;});
+      this.world=D.Headman.world();
       this.fighters.forEach(f=>{f.meter=100;});
       this.freeze=0;
       this.cinematics=[];
