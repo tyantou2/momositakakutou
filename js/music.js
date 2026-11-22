@@ -1,6 +1,6 @@
 (function(D){
   "use strict";
-  const tracks={battle:{src:"assets/music/battle-cut-and-run.mp3",title:"Cut and Run",artist:"Kevin MacLeod",source:"https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1100851"},crush:{src:"assets/music/crush-volatile-reaction.mp3",title:"Volatile Reaction",artist:"Kevin MacLeod",source:"https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1400039"},rush:{src:"assets/music/rush-rocket-power.mp3",title:"Rocket Power",artist:"Kevin MacLeod",source:"https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1600038"}};
+  const tracks={azure:{src:"assets/music/azure-five-armies.mp3",title:"Five Armies",artist:"Kevin MacLeod",source:"https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1100875"},battle:{src:"assets/music/battle-cut-and-run.mp3",title:"Cut and Run",artist:"Kevin MacLeod",source:"https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1100851"},crush:{src:"assets/music/crush-volatile-reaction.mp3",title:"Volatile Reaction",artist:"Kevin MacLeod",source:"https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1400039"},rush:{src:"assets/music/rush-rocket-power.mp3",title:"Rocket Power",artist:"Kevin MacLeod",source:"https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1600038"}};
   let ctx,output,battleGain,cueGain,battleNode=null,cueNode=null,active=false,epoch=0,serial=null,currentEvent=null,volume=.65,duckUntil=0,returnAt=0;
   function attach(context,bus){if(ctx)return;ctx=context;output=bus;battleGain=ctx.createGain();cueGain=ctx.createGain();battleGain.connect(output);cueGain.connect(output);battleGain.gain.value=0;cueGain.gain.value=0;if(active)battle();}
   function ramp(gain,target,seconds=.18){if(!ctx)return;gain.gain.cancelScheduledValues(ctx.currentTime);gain.gain.setTargetAtTime(target,ctx.currentTime,Math.max(.01,seconds/3));}
@@ -44,3 +44,4 @@
   function preload(){for(const track of Object.values(tracks))D.Audio.loadBuffer(track.src).catch(()=>{});}
   D.Music={attach,battle,cutin,release,duck,update,setVolume,stop,preload,tracks,status:()=>({active,serial,returnAt,duckUntil,volume,battle:!!battleNode,cue:!!cueNode,contextTime:ctx?.currentTime||0})};
 })(Dojo);
+

@@ -1,6 +1,6 @@
 (function(D) {
   "use strict";
-  const VERSION="dojo-3.2",PREFIX="momoshita-v32-";
+  const VERSION="dojo-3.3",PREFIX="momoshita-v33-";
   const alphabet="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   const token=()=>Array.from(crypto.getRandomValues(new Uint8Array(8)),n=>alphabet[n%alphabet.length]).join("");
   function fighter(record) {
@@ -126,3 +126,4 @@
   }
   D.Online=Online;D.onlineFighter=fighter;
 })(Dojo);
+

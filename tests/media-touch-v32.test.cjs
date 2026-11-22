@@ -38,9 +38,9 @@ test('a music download finishing after leaving battle cannot start an orphaned t
 });
 test('an interrupted pending video play cannot turn a later online resume into a media failure',async()=>{
  const pending=[];const video={paused:true,currentTime:0,readyState:4,seeking:false,videoWidth:1280,videoHeight:720,play(){this.paused=false;return new Promise((_,reject)=>pending.push(reject));},pause(){this.paused=true;},addEventListener(){}};
- const dojo={...D},document={getElementById:()=>video,createElement:()=>({getContext:()=>({})})};vm.runInNewContext(fs.readFileSync(require.resolve('../js/cutin-video.js'),'utf8'),{Dojo:dojo,document});
+ let now=0;const dojo={...D},document={getElementById:()=>video,createElement:()=>({getContext:()=>({})})};vm.runInNewContext(fs.readFileSync(require.resolve('../js/cutin-video.js'),'utf8'),{Dojo:dojo,document,performance:{now:()=>now}});
  const shot={serial:2,a:{data:D.cast[0],index:0},key:'crush',age:49};dojo.VideoCutIn.online(shot,true,true);assert.equal(pending.length,1);
- dojo.VideoCutIn.online(shot,true,false);dojo.VideoCutIn.online(shot,true,true);assert.equal(pending.length,2);
+ now=100;dojo.VideoCutIn.online(shot,true,false);assert.equal(pending.length,1);now=200;dojo.VideoCutIn.online(shot,true,false);now=300;dojo.VideoCutIn.online(shot,true,true);assert.equal(pending.length,2);
  pending[0](Object.assign(new Error('pause interrupted play'),{name:'AbortError'}));await Promise.resolve();assert.equal(dojo.VideoCutIn.holds(shot),true);
- pending[1](Object.assign(new Error('play blocked'),{name:'NotAllowedError'}));await Promise.resolve();assert.equal(dojo.VideoCutIn.holds(shot),false);
+ pending[1](Object.assign(new Error('play failed'),{name:'NotSupportedError'}));await Promise.resolve();assert.equal(dojo.VideoCutIn.holds(shot),false);
 });

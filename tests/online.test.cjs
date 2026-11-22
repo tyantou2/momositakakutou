@@ -17,7 +17,7 @@ test('azure confirms three real hits with one finisher and retains guard, dodge,
     const m=make([D.cast[2],defender]);m.phase='fight';const[a,b]=m.fighters;b.x=a.x+(defense==='miss'?500:115);a.meter=100;
     const cmd=defense==='guard'?{...blank,guard:true}:defense==='spot'?{...blank,action:'spot'}:blank;
     m.tick({...blank,action:'special'},cmd);
-    for(let i=0;i<180;i++)m.tick(blank,defense==='guard'?cmd:blank);
+    for(let i=0;i<D.cutins.yan.frames+180;i++)m.tick(blank,defense==='guard'?cmd:blank);
     const events=m.drain(),hits=events.filter(e=>e.type==='hit');
     assert.equal(hits.length,defense==='hit'?3:0,defense);
     assert.equal(events.filter(e=>e.finisher).length,defense==='hit'?1:0);

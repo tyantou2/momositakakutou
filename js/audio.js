@@ -8,7 +8,7 @@
   let introTimer=0;
   let duckUntil=0;
   const announced=new Set(),superClips=new Map();
-  for(const clip of Object.values(D.cutins)){const track=new Audio(clip.voice);track.preload="auto";superClips.set(clip.voice,track);}
+  for(const clip of Object.values(D.cutins).filter(c=>c.voice)){const track=new Audio(clip.voice);track.preload="auto";superClips.set(clip.voice,track);}
   let lastCallout=new WeakMap();
   function init() {
     if (muted && !audio) return;
@@ -19,7 +19,7 @@
         sfxBus=audio.createGain();voiceBus=audio.createGain();musicBus=audio.createGain();sfxBus.connect(master);voiceBus.connect(master);musicBus.connect(master);
         D.Music?.attach(audio,musicBus);configure(volumes);
         for(const id of builtIn)for(const tag of Object.keys(D.voiceSlots))loadBuffer("assets/"+id+"-"+tag+".mp3?v=2.3").catch(()=>{});
-        for(const clip of Object.values(D.cutins)){loadBuffer(clip.voice).catch(()=>{});if(clip.dialogue)loadBuffer(clip.dialogue.src).catch(()=>{});}
+        for(const clip of Object.values(D.cutins)){if(clip.voice)loadBuffer(clip.voice).catch(()=>{});if(clip.dialogue)loadBuffer(clip.dialogue.src).catch(()=>{});}
         D.Music?.preload();
       }
       if(audio.state==="suspended"&&!paused&&!hidden)audio.resume().catch(()=>{});
@@ -131,6 +131,7 @@
         tone(220,659,.26,.14,"triangle");tone(440,932,.18,.09,"sine",.08);callout(e.a,"special");break;
       case "crushRelease": thump(.13,.12,1400);tone(145,360,.13,.11,"triangle");break;
       case "rushRelease": thump(.10,.10,1900);tone(280,650,.10,.10,"triangle");break;
+      case "azureRelease": thump(.10,.11,2100);tone(420,1080,.12,.10,"triangle");break;
       case "hit":
       case "break":
       case "counter":
@@ -150,7 +151,7 @@
     }
   }
   function superVoice(event) {
-    const clip=D.movieFor(event);if(!clip)return;
+    const clip=D.movieFor(event);if(!clip?.voice)return;
     const key=event.serial+":"+event.a.index+":"+event.key;
     if(announced.has(key))return;
     announced.add(key);

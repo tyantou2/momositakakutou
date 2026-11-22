@@ -1,6 +1,6 @@
 # Music credits and redistribution
 
-All three recordings below are composed and produced by **Kevin MacLeod (incompetech.com)**, licensed under **Creative Commons Attribution 4.0 International (CC BY 4.0)**.
+All four recordings below are composed and produced by **Kevin MacLeod (incompetech.com)**, licensed under **Creative Commons Attribution 4.0 International (CC BY 4.0)**.
 
 License: https://creativecommons.org/licenses/by/4.0/
 
@@ -50,6 +50,21 @@ http://creativecommons.org/licenses/by/4.0/
 - Game asset: `rush-rocket-power.mp3` (160 kbps stereo MP3).
 - Changes: excerpt 16.000–22.000 seconds, three four-beat bars at 120 BPM; 25 ms fade-in / 320 ms fade-out; target −18 LUFS / −2 dBTP.
 - Use: Momonosuke's 百花ラッシュ, from the title through the four punches and short musical tail.
+
+## Five Armies (v3.3)
+
+"Five Armies" Kevin MacLeod (incompetech.com)
+Licensed under Creative Commons: By Attribution 4.0 License
+http://creativecommons.org/licenses/by/4.0/
+
+- ISRC: USUAN1100875
+- Track page: https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1100875
+- Official attribution page: https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1100875&lt=
+- Original recording: https://incompetech.com/music/royalty-free/mp3-royaltyfree/Five%20Armies.mp3
+- Game asset: `azure-five-armies.mp3`, 160 kbps stereo MP3 / 48 kHz, approximately 6.0504 seconds.
+- Changes: excerpt approximately 121.0084–127.0588 seconds; 25 ms fade-in, 320 ms fade-out, target −18 LUFS / −2 dBTP. Playback is not dependent on network simulation timing.
+- Use: Yan's 蒼閃・一文字, name card through the movie, three punches and a short tail. This is an existing orchestral recording, not generated music. Credits, source and CC BY 4.0 link also appear in settings.
+- CC BY 4.0 permits editing and public redistribution of this asset with attribution, license link and the changes above. Rechecked against the official track attribution on 2026-11-22. Human listening evaluation is not claimed.
 
 ## Selection record / 選定時の比較
 

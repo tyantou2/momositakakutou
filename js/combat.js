@@ -63,7 +63,7 @@
         if(this.online && clip?.dialogue && this.cinematic.age===Math.round(clip.title/1000*60+(clip.dialogue.time-clip.start)*60)) {
           this.emit("cutinDialogue",this.cinematic.a,null,{key:this.cinematic.key,serial:this.cinematic.serial});
         }
-        if(this.online && clip && this.cinematic.age===clip.frames-Math.round(clip.voiceLead*60)) {
+        if(this.online && clip?.voice && this.cinematic.age===clip.frames-Math.round(clip.voiceLead*60)) {
           this.emit("specialVoice",this.cinematic.a,null,{key:this.cinematic.key,serial:this.cinematic.serial});
         }
         if (this.cinematic.age>=(this.cinematic.duration || RULES.cutIn)) {
@@ -388,7 +388,8 @@
       this.freeze=Math.max(this.freeze,finisher?9:move.stop);
       const rush=move===D.moves.rush && kind==="hit";
       const rushBeat=rush?move.beats.indexOf(a.attack?.age-a.attack?.wind)+1:0;
-      this.emit(kind,a,b,{point,lift,damage,heavy:finisher || move.stop>=6,crush,azure,finisher,rush,rushBeat,rushFinish:rushBeat===4});
+      const azureBeat=azure?move.beats.indexOf(a.attack?.age-a.attack?.wind)+1:0;
+      this.emit(kind,a,b,{point,lift,damage,heavy:finisher || move.stop>=6,crush,azure,azureBeat,finisher,rush,rushBeat,rushFinish:rushBeat===4});
     }
     expire(f) {
       if (!f.attack) return;

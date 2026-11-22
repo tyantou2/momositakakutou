@@ -20,6 +20,11 @@
   }
   D.TouchState=TouchState;
   if(typeof document==="undefined")return;
+  // Only game controls suppress selection/callouts; text fields and invite codes retain native editing.
+  for(const name of ['selectstart','contextmenu','dragstart'])document.addEventListener(name,e=>{
+    const target=e.target?.nodeType===1?e.target:e.target?.parentElement;
+    if(target?.closest('button,[role="button"]')&&!target.closest('input,textarea,[contenteditable="true"]'))e.preventDefault();
+  },true);
   const state=new TouchState(),pads=document.getElementById("touch-controls"),buttons=[...pads.querySelectorAll("[data-action]")];
   let callbacks={},setting="auto",shown=false;
   const supported=()=>matchMedia("(pointer:coarse)").matches||navigator.maxTouchPoints>0;
@@ -30,7 +35,7 @@
     button.addEventListener("pointerdown",e=>{
       e.preventDefault();callbacks.gesture?.();
       if(!shown||!callbacks.canUse?.()||callbacks.locked?.())return;
-      if(state.down(e.pointerId,button.dataset.action)){button.setPointerCapture(e.pointerId);paint();}
+      if(state.down(e.pointerId,button.dataset.action)){try{button.setPointerCapture(e.pointerId);}catch{state.up(e.pointerId);}paint();}
     });
     for(const event of ["pointerup","pointercancel","lostpointercapture"])button.addEventListener(event,e=>{e.preventDefault();state.up(e.pointerId);paint();});
     button.addEventListener("pointermove",e=>{

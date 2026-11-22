@@ -29,7 +29,8 @@
   const specials = ["rush", "crush", "counter", "comet"];
   const cutins={
     momokage:{key:"crush",element:"crush-video",start:.30,end:3.75,title:800,frames:255,lunge:10,release:"crushRelease",voiceLead:.60,voice:"assets/momokage-super-v31.mp3",voiceDuration:.811,dialogue:{time:85/60,src:"assets/momokage-dialogue-v32.mp3",duration:.416,text:"いくぞっ！"}},
-    momonosuke:{key:"rush",element:"rush-video",start:0,end:241/60,title:800,frames:289,lunge:6,release:"rushRelease",voiceLead:.30,voice:"assets/momonosuke-super-v31.mp3",voiceDuration:.864,dialogue:{time:1.60,src:"assets/momonosuke-dialogue-v32.mp3",duration:.693,text:"いくよっ！"}}
+    momonosuke:{key:"rush",element:"rush-video",start:0,end:241/60,title:800,frames:289,lunge:6,release:"rushRelease",voiceLead:.30,voice:"assets/momonosuke-super-v31.mp3",voiceDuration:.864,dialogue:{time:1.60,src:"assets/momonosuke-dialogue-v32.mp3",duration:.693,text:"いくよっ！"}},
+    yan:{key:"azure",element:"azure-video",start:0,end:94/24,title:800,frames:283,lunge:6,release:"azureRelease"}
   };
   const movieFor=shot=>{const clip=cutins[shot?.a?.data?.id];return clip?.key===shot?.key?clip:null;};
   const voiceSlots = { start: "試合開始", attack: "攻撃", special: "必殺技", damage: "被弾", win: "勝利" };

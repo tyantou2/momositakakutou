@@ -41,7 +41,7 @@
   let mode="cpu", difficulty="normal", dummy="idle", screen="lobby", slot=0, editorTab="appearance";
   let selected=D.cast.slice(0,2).map(f=>f.id);
   let draft=fresh(), match=null, paused=false, fx=[], shake=0, accumulator=0, last=0;
-  let returnFlash=0;
+  let returnFlash=0,returnTint="#fff0f7";
   let onlineSide=0, onlineEnded=false;
   let toastTimer, editorVersion=0;
   const keys = new Set(), queue=[null,null];
@@ -114,6 +114,7 @@
     window.scrollTo(0,0);
   }
   function paintLobby() {
+    D.VideoCutIn.prepare([getFighter(0),getFighter(1)]);
     for (let i=0;i<2;i++) {
       const f=getFighter(i);
       $("name"+i).textContent=f.name;
@@ -415,6 +416,7 @@
   }
   function start(options) {
     D.Audio.setPaused(false);D.Audio.init();
+    D.VideoCutIn.prepare(options?.fighters||[getFighter(0),getFighter(1)],true);
     if(mode==="online" && !options?.fighters){network.setFighter(getFighter(0));network.ready();return;}
     D.VideoCutIn.stop();returnFlash=0;
     D.Audio.stopVoices();D.Audio.init();
@@ -530,6 +532,7 @@
       const videoState=D.VideoCutIn.update(match.cinematic,paused,now);
       $("fight-arena").classList.toggle("video-cinematic",D.VideoCutIn.isVideo(match.cinematic));
       if(videoState==="done" && !paused) {
+        returnTint=match.cinematic.key==="azure"?"#dfffff":"#fff0f7";
         D.VideoCutIn.stop();
         match.endCinematic(match.cinematic,true);
         consumeEvents(match.drain());
@@ -566,19 +569,19 @@
     if(returnFlash) {
       context.save();
       context.globalAlpha=returnFlash/8*.65;
-      context.fillStyle="#fff0f7";context.fillRect(0,0,1280,650);
+      context.fillStyle=returnTint;context.fillRect(0,0,1280,650);
       context.restore();
     }
   }
   function consumeEvents(events) {
     for(const event of events) {
-      if(["crushRelease","rushRelease"].includes(event.type))D.Music.release(event);
+      if(["crushRelease","rushRelease","azureRelease"].includes(event.type))D.Music.release(event);
       if(event.type==="special" && mode!=="online")D.VideoCutIn.start(match.cinematic,settings.motion);
       const film=mode==="online"?!!D.movieFor(event) && settings.motion:D.VideoCutIn.holds(match.cinematic);
       D.Audio.event(event,film);
-      if(["crushRelease","rushRelease"].includes(event.type) && mode==="online")returnFlash=8;
+      if(["crushRelease","rushRelease","azureRelease"].includes(event.type) && mode==="online"){returnFlash=8;returnTint=event.key==="azure"?"#dfffff":"#fff0f7";}
       if(event.type==="over"){D.Music.stop(.65);onlineEnded=true;result();continue;}
-      if(!["fight","swing","step","jump","special","crushRelease","rushRelease","specialVoice","cutinDialogue"].includes(event.type))fx.push({...event,age:0});
+      if(!["fight","swing","step","jump","special","crushRelease","rushRelease","azureRelease","specialVoice","cutinDialogue"].includes(event.type))fx.push({...event,age:0});
       if(event.heavy)shake=event.type==="block"?3:7;
       if(event.rushFinish)shake=4;
     }
@@ -638,8 +641,9 @@
   });
   document.addEventListener("keyup",e=>keys.delete(e.code));
   window.addEventListener("blur",()=>{clearKeys();if(inBattle() && mode!=="online")togglePause();});
-  document.addEventListener("visibilitychange",()=>{D.Audio.visibility(!document.hidden);if(document.hidden){clearKeys();if(inBattle() && mode!=="online")togglePause();}});
-  window.addEventListener("pagehide",()=>{clearKeys();D.Audio.visibility(false);});
+  document.addEventListener("visibilitychange",()=>{D.Audio.visibility(!document.hidden);D.VideoCutIn.suspend(document.hidden);if(document.hidden){clearKeys();if(inBattle() && mode!=="online")togglePause();}});
+  window.addEventListener("pagehide",()=>{clearKeys();D.Audio.visibility(false);D.VideoCutIn.suspend(true);});
+  window.addEventListener("pageshow",()=>{D.VideoCutIn.suspend(document.hidden);D.Audio.visibility(!document.hidden);});
   $$("[data-icon]").forEach(el=>{el.innerHTML=icon(el.dataset.icon);});
   $("settings").innerHTML=icon("settings");
   $("settings").onclick=options;$("help").onclick=help;

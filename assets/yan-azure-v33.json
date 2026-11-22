@@ -1,0 +1,20 @@
+{
+  "source": "gemini_generated_video_96481a0f.mp4",
+  "sourceSha256": "6185411dee7d37243a8e9dc4178c56ec6bd73d348ad5ed73fb127ff8adae679a",
+  "sourceStart": 11.458333333333334,
+  "sourceEndExclusive": 15.375,
+  "sourceFrames": [
+    275,
+    369
+  ],
+  "duration": 3.9166666666666665,
+  "frames": 94,
+  "fps": 24,
+  "width": 1280,
+  "height": 720,
+  "audio": false,
+  "asset": "yan-azure-cinematic-v33.mp4",
+  "titleSeconds": 0.8,
+  "onlineFrames": 283,
+  "releaseFrames": 6
+}

@@ -6,18 +6,18 @@
   <meta name="color-scheme" content="dark">
   <title>桃下拳闘 — 桃下村塾</title>
   <link rel="preload" href="assets/dojo-v32.webp" as="image">
-  <link rel="stylesheet" href="style.css?v=3.2">
+  <link rel="stylesheet" href="style.css?v=3.3">
   <script defer src="vendor/peerjs-1.5.5.min.js"></script>
-  <script defer src="js/data.js?v=3.2"></script>
-  <script defer src="js/combat.js?v=3.2"></script>
-  <script defer src="js/netcode.js?v=3.2"></script>
-  <script defer src="js/online.js?v=3.2"></script>
-  <script defer src="js/art.js?v=3.2"></script>
-  <script defer src="js/audio.js?v=3.2"></script>
-  <script defer src="js/music.js?v=3.2.1"></script>
-  <script defer src="js/touch.js?v=3.2"></script>
-  <script defer src="js/cutin-video.js?v=3.2.1"></script>
-  <script defer src="js/app.js?v=3.2"></script>
+  <script defer src="js/data.js?v=3.3"></script>
+  <script defer src="js/combat.js?v=3.3"></script>
+  <script defer src="js/netcode.js?v=3.3"></script>
+  <script defer src="js/online.js?v=3.3"></script>
+  <script defer src="js/art.js?v=3.3"></script>
+  <script defer src="js/audio.js?v=3.3"></script>
+  <script defer src="js/music.js?v=3.3"></script>
+  <script defer src="js/touch.js?v=3.3"></script>
+  <script defer src="js/cutin-video.js?v=3.3"></script>
+  <script defer src="js/app.js?v=3.3"></script>
 </head>
 <body>
   <header class="top">
@@ -123,8 +123,9 @@
       <p class="rotate-note">横向きにすると、リングと操作ボタンを広く使えます。</p>
       <div class="playfield" id="playfield">
       <div class="arena fight-arena" id="fight-arena">
-        <video id="crush-video" preload="auto" muted playsinline hidden src="assets/momokage-crush-cinematic-v25.mp4"></video>
-        <video id="rush-video" preload="auto" muted playsinline hidden src="assets/momonosuke-rush-cinematic-v31.mp4"></video>
+        <video id="crush-video" preload="metadata" muted playsinline hidden src="assets/momokage-crush-cinematic-v25.mp4"></video>
+        <video id="rush-video" preload="metadata" muted playsinline hidden src="assets/momonosuke-rush-cinematic-v31.mp4"></video>
+        <video id="azure-video" preload="metadata" muted playsinline hidden src="assets/yan-azure-cinematic-v33.mp4"></video>
         <canvas id="ring" width="1280" height="650" aria-label="横視点の対戦リング"></canvas>
         <div class="hud">
           <div class="meter-group" id="hud0"></div>
@@ -157,12 +158,13 @@
       </div>
       <div class="keys box" id="battle-keys"></div>
     </section>
-    <footer><span>桃下村塾 <i></i> 桃下拳闘</span><span>ブラウザ対戦 <i></i> v3.2</span></footer>
+    <footer><span>桃下村塾 <i></i> 桃下拳闘</span><span>ブラウザ対戦 <i></i> v3.3</span></footer>
   </main>
   <dialog id="dialog"><div class="dialog-top"><h2 id="dialog-title"></h2><button class="icon-btn" id="close-dialog" aria-label="閉じる">×</button></div><div id="dialog-content"></div></dialog>
   <div id="toast" class="toast" role="status" hidden></div>
   <noscript>プレイするにはブラウザの JavaScript を有効にしてください。</noscript>
 </body>
 </html>
+
 
 
