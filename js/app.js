@@ -394,6 +394,7 @@
       const credits=node("div","music-credits");credits.append(node("strong","","音楽クレジット"));
       for(const track of Object.values(D.Music.tracks)){const p=node("p","",track.title+" — "+track.artist+" / ");const a=node("a","","配布元");a.href=track.source;a.target="_blank";a.rel="noopener";p.append(a);credits.append(p);}
       const license=node("a","","CC BY 4.0（抜粋・ループ編集・音量調整）");license.href="https://creativecommons.org/licenses/by/4.0/";license.target="_blank";license.rel="noopener";credits.append(license);content.append(credits);
+      const movieCredits=node('p','','蒼閃・一文字v13は提供された完成A案の音楽・効果音を使用。決め音はKenney（CC0）。Five Armiesは旧版の同梱曲です。');const movieLicense=node('a','','動画音声の素材・利用条件');movieLicense.href='assets/yan-azure-audio-v13-LICENSE.md';movieLicense.target='_blank';movieLicense.rel='noopener';movieCredits.append(movieLicense);credits.append(movieCredits);
     });
   }
   function clearKeys() {

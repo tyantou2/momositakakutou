@@ -17,7 +17,7 @@
         const Context=globalThis.AudioContext||globalThis.webkitAudioContext;if(!Context)return;
         audio=new Context();const master=audio.createDynamicsCompressor();master.threshold.value=-5;master.knee.value=12;master.ratio.value=4;masterGain=audio.createGain();master.connect(masterGain).connect(audio.destination);
         sfxBus=audio.createGain();voiceBus=audio.createGain();musicBus=audio.createGain();sfxBus.connect(master);voiceBus.connect(master);musicBus.connect(master);
-        D.Music?.attach(audio,musicBus);configure(volumes);
+        D.Music?.attach(audio,musicBus);D.CutInSound?.attach(audio,sfxBus,loadBuffer);configure(volumes);
         for(const id of builtIn)for(const tag of Object.keys(D.voiceSlots))loadBuffer("assets/"+id+"-"+tag+".mp3?v=2.3").catch(()=>{});
         for(const clip of Object.values(D.cutins)){if(clip.voice)loadBuffer(clip.voice).catch(()=>{});if(clip.dialogue)loadBuffer(clip.dialogue.src).catch(()=>{});}
         D.Music?.preload();
@@ -117,6 +117,7 @@
   function event(e,videoCutIn=false) {
     if(e.type==="cutinDialogue"){dialogueVoice(e);return;}
     if(e.type==="specialVoice"){superVoice(e);return;}
+    if(e.type==='azureRelease'&&e.prepared&&D.movieFor(e)?.soundtrack)return;
     if(e.type==="crushRelease" || e.type==="rushRelease")superVoice(e);
     if (muted) return;
 
@@ -124,6 +125,7 @@
       case "fight": tone(415,622,.19,.13,"triangle"); break;
       case "swing": thump(.11,e.key==="heavy"?.11:.064,1800); callout(e.a,"attack"); break;
       case "special":
+        if(videoCutIn&&D.movieFor(e)?.soundtrack)break;
         if(e.key==='morph'){tone(170,520,.42,.09,'triangle');tone(330,680,.32,.07,'sine',.18);break;}
         if(e.key==="azure") {tone(180,1000,.35,.13,"sawtooth");tone(740,1480,.20,.08,"sine",.15);break;}
         if(D.movieFor(e)) {

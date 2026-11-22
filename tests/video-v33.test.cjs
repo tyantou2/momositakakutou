@@ -37,7 +37,7 @@ test('online correction does not seek into missing data and accepts a completed 
  const h=harness(),v=h.videos['azure-video'],s=h.make('yan');v.readyState=4;s.age=49;h.V.online(s,true,true);h.pending[0].resolve();await Promise.resolve();v.currentTime=.05;
  let position=.05,seeks=0,bufferEnd=.5;Object.defineProperty(v,'currentTime',{get:()=>position,set:t=>{position=t;seeks++;v.seeking=true;}});v.buffered={length:1,start:()=>0,end:()=>bufferEnd};s.age=100;h.setNow(500);h.V.online(s,true,true);assert.equal(seeks,0);
  bufferEnd=D.cutins.yan.end;s.age=101;h.setNow(600);h.V.online(s,true,true);assert.equal(seeks,1);assert.equal(h.V.status().seekPending,true);
- position=1.1;v.seeking=false;v.paused=false;s.age=110;h.setNow(700);h.V.online(s,true,true);assert.equal(h.V.status().seekPending,false);assert.notEqual(h.V.status().state,'fallback');
+ position=101/60-D.cutins.yan.title/1000+.08;v.seeking=false;v.paused=false;s.age=110;h.setNow(700);h.V.online(s,true,true);assert.equal(h.V.status().seekPending,false);assert.notEqual(h.V.status().state,'fallback');
 });
 test('a late prewarm promise cannot pause the same element after a real cut-in has taken ownership',async()=>{
  const h=harness(),v=h.videos['azure-video'];h.V.prepare([D.cast[2]],true);assert.equal(h.pending.length,1);v.readyState=4;const s=h.make('yan');h.V.start(s);for(let i=0;i<12;i++)h.advance(s);assert.equal(h.pending.length,2);h.pending[0].resolve();await Promise.resolve();assert.equal(v.paused,false);assert.equal(h.V.holds(s),true);

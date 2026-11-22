@@ -1,0 +1,33 @@
+{
+  "source": "yan_azure_cutin_v12_A.mp4",
+  "library_file_id": "libfile_f843d6e013348191bf02a7d50aebe15d",
+  "duration": 4.7,
+  "fps": 30,
+  "frames": 141,
+  "title_complete_frame": 132,
+  "title_complete_time": 4.4,
+  "den_frame": 133,
+  "den_time": 4.433333333333334,
+  "flash_frame": 136,
+  "flash_time": 4.533333333333333,
+  "added_effect_seconds": 0.26666666666666666,
+  "source_mix_difference_before_den_max": 1.1920928955078125e-07,
+  "final_pcm_peak_dbfs": -1.5144188642779657,
+  "picture_stream_hash": "SHA256=8c39dcf24c75ed530697a9ad4ccf726b80de98bf27753bf7fc4373906c30aeca",
+  "video_identical_to_A": true,
+  "audio_strategy": "Video remains muted; exact extracted final AAC soundtrack is decoded by Web Audio and follows displayed media time. Never also play the standalone den.",
+  "assets": {
+    "yan_azure_cutin_final_v13.mp4": {
+      "bytes": 2302291,
+      "sha256": "adb99e5b1da5b421dfdf5aa4cd6f0c0e9b199c5159b67935bc81f379349db538"
+    },
+    "yan-azure-soundtrack-v13.m4a": {
+      "bytes": 152579,
+      "sha256": "1bdc3bfc54cdf901dfc09f6ccc2ebac013101d86b3a9d86db42e0ebbea46f10d"
+    },
+    "yan-azure-den-v13.wav": {
+      "bytes": 51244,
+      "sha256": "fcd45d0c6f6a67a0c2a8a0a7749ac8e08acffde77a92e7c0d0552d4dca2fe749"
+    }
+  }
+}

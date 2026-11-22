@@ -23,6 +23,7 @@
     const clip=D.movieFor(event);if(!ctx||!active||!clip)return;
     const id=event.serial+":"+event.a.index+":"+event.key;if(serial===id)return;
     serial=id;currentEvent=event;returnAt=0;ramp(battleGain,0,.14);ramp(cueGain,0,.08);stopNode(cueNode,.10);cueNode=null;
+    if(clip.soundtrack)return;
     const started=ctx.currentTime-age/60;
     const buffer=await D.Audio.loadBuffer(tracks[event.key].src).catch(()=>null);
     if(!buffer||!active||serial!==id)return;
@@ -32,7 +33,7 @@
   function release(event){
     if(!ctx||!serial||!D.movieFor(event))return;
     serial=null;
-    const tail=event.prepared?Math.min(1.15,Math.max(.25,(cueNode?.buffer?.duration||0)-(D.movieFor(event).frames/60))):.35;
+    const tail=D.movieFor(event).soundtrack ? .18 : event.prepared?Math.min(1.15,Math.max(.25,(cueNode?.buffer?.duration||0)-(D.movieFor(event).frames/60))):.35;
     returnAt=ctx.currentTime+tail;
     levels();
     stopNode(cueNode,tail+.03);
@@ -41,7 +42,7 @@
   function update(shot){if(!ctx||!active)return;if(D.movieFor(shot)){const id=shot.serial+":"+shot.a.index+":"+shot.key;if(serial!==id)cutin(shot,shot.age);}else if(serial)release({...currentEvent,prepared:false});if(duckUntil&&ctx.currentTime>=duckUntil){duckUntil=0;levels();}if(returnAt&&ctx.currentTime>=returnAt){returnAt=0;levels();}}
   function setVolume(value){volume=D.clamp(value,0,1);levels();}
   function stop(fade=.4){active=false;epoch++;serial=null;returnAt=0;if(ctx){ramp(battleGain,0,fade);ramp(cueGain,0,fade);stopNode(battleNode,fade+.02);stopNode(cueNode,fade+.02);}battleNode=cueNode=null;}
-  function preload(){for(const track of Object.values(tracks))D.Audio.loadBuffer(track.src).catch(()=>{});}
-  D.Music={attach,battle,cutin,release,duck,update,setVolume,stop,preload,tracks,status:()=>({active,serial,returnAt,duckUntil,volume,battle:!!battleNode,cue:!!cueNode,contextTime:ctx?.currentTime||0})};
+  function preload(){for(const [key,track] of Object.entries(tracks))if(key!=='azure'||!D.cutins.yan.soundtrack)D.Audio.loadBuffer(track.src).catch(()=>{});}
+  D.Music={attach,battle,cutin,release,duck,update,setVolume,stop,preload,tracks,status:()=>({active,serial,returnAt,duckUntil,volume,battle:!!battleNode,cue:!!cueNode,battleLevel:battleGain?.gain.value||0,cueLevel:cueGain?.gain.value||0,contextTime:ctx?.currentTime||0})};
 })(Dojo);
 
