@@ -139,21 +139,22 @@
     }
     announce(shot) {
       const {a,key}=shot;
-      this.emit("special",a,null,{key,serial:shot.serial});
+      this.emit("special",a,null,{key,form:shot.form,serial:shot.serial});
     }
     endCinematic(shot,prepared=false) {
       if (!shot || this.cinematic!==shot) return false;
       const attack=shot.a.attack;
       const clip=D.movieFor(shot);
-      if(shot.key==='morph')D.Headman.complete(this,shot.a);
-      if(prepared && clip && attack?.key===shot.key) {
+      const morph=shot.key==='morph';
+      if(morph)D.Headman.complete(this,shot.a,prepared);
+      if(!morph && prepared && clip && attack?.key===shot.key) {
         // The film supplies the wind-up. Preserve its total travel in the final lunge.
         const remaining=attack.wind-attack.age;
         const lunge=Math.min(remaining,clip.lunge);
         attack.stepScale=remaining/lunge;
         attack.age=attack.wind-lunge;
       }
-      if(clip && attack?.key===shot.key)this.emit(clip.release,shot.a,null,{key:shot.key,serial:shot.serial,prepared});
+      if(clip && (morph||attack?.key===shot.key))this.emit(clip.release,shot.a,null,{key:shot.key,form:shot.form,serial:shot.serial,prepared});
       this.cinematics.shift();
       if (this.cinematic) this.announce(this.cinematic);
       return true;

@@ -1,0 +1,43 @@
+{
+  "date": "2026-11-24",
+  "source": "The exact two completed videos downloaded from the user-specified ChatGPT Library entries. No older or placeholder movie used.",
+  "processing": "Full MP4 byte copy; AAC audio extracted without re-encoding. No new sound or music added.",
+  "movies": [
+    {
+      "form": "nozaki",
+      "source": "村長_野崎形態_顔アップ飛びなし_5秒.mp4",
+      "library_id": "libfile_df4cb8412d6481919f7cafbc14c30736",
+      "video": "headman-nozaki-cinematic-v1.mp4",
+      "soundtrack": "headman-nozaki-soundtrack-v1.m4a",
+      "video_sha256": "dc58ad344cf89bf2350ea5fa3228f2d355aa04aac42a594ed0da72f61cc41d31",
+      "video_bytes": 3484041,
+      "soundtrack_bytes": 122722,
+      "duration": "5.041667",
+      "fps": "24/1",
+      "frames": 121,
+      "online_ticks": 303,
+      "audio_duration": "5.040000",
+      "audio_packet_hash": "SHA256=b3e343149db7ea4de7dd86c70da55758b26d7f10dc72a718028fbf91d8b5c936",
+      "video_byte_identical": true,
+      "audio_packets_identical": true
+    },
+    {
+      "form": "thermae",
+      "source": "村長_テルマエ形態_変身カットイン_5.75秒.mp4",
+      "library_id": "libfile_5085bb4a4a588191930625883d9ddbdd",
+      "video": "headman-thermae-cinematic-v1.mp4",
+      "soundtrack": "headman-thermae-soundtrack-v1.m4a",
+      "video_sha256": "40296fd06ef82ace2f4985f30fba2bd09ee00f4375154caa8f14db1813b53e53",
+      "video_bytes": 3569411,
+      "soundtrack_bytes": 142564,
+      "duration": "5.750000",
+      "fps": "24/1",
+      "frames": 138,
+      "online_ticks": 345,
+      "audio_duration": "5.750000",
+      "audio_packet_hash": "SHA256=56b8594c2cfc7e3a14f33b2dc4fe22c8bd59bbc6fa7d6ea1e4104a21c6e9e052",
+      "video_byte_identical": true,
+      "audio_packets_identical": true
+    }
+  ]
+}

@@ -8,7 +8,7 @@
   function initial(seed,index){return {form:null,pending:null,remaining:0,ending:false,cooldownA:0,cooldownB:0,ammo:0,rolls:0,rng:((seed>>>0)^Math.imul(index+1,0x9e3779b9))>>>0};}
   function next(state){state.rng=(state.rng+0x6D2B79F5)>>>0;let n=state.rng;n=Math.imul(n^(n>>>15),n|1);n^=n+Math.imul(n^(n>>>7),n|61);return (n^(n>>>14))>>>0;}
   function drawForm(f){const s=f.shift;s.pending=next(s)<0x80000000?'thermae':'nozaki';s.rolls++;return s.pending;}
-  function complete(m,f){const s=f.shift;if(!s?.pending)return;s.form=s.pending;s.pending=null;s.remaining=duration;s.ending=false;s.cooldownA=s.cooldownB=0;s.ammo=s.form==='nozaki'?2:0;f.attack=null;m.emit('transform',f,null,{form:s.form});}
+  function complete(m,f,prepared=false){const s=f.shift;if(!s?.pending)return;s.form=s.pending;s.pending=null;s.remaining=duration;s.ending=false;s.cooldownA=s.cooldownB=0;s.ammo=s.form==='nozaki'?2:0;f.attack=null;m.emit('transform',f,null,{form:s.form,prepared});}
   function usable(f){return !!f.shift?.form&&f.shift.remaining>0&&!f.shift.ending;}
   function look(f){return f.shift?.form?D.headmanForms[f.shift.form]:f.data;}
   function finish(m,f){const old=f.shift.form;f.shift.form=null;f.shift.ending=false;f.shift.ammo=0;f.shift.cooldownA=f.shift.cooldownB=0;m.emit('transformEnd',f,null,{form:old});}

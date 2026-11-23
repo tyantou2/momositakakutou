@@ -35,9 +35,12 @@
   const cutins={
     momokage:{key:"crush",element:"crush-video",start:.30,end:3.75,title:800,frames:255,lunge:10,release:"crushRelease",voiceLead:.60,voice:"assets/momokage-super-v31.mp3",voiceDuration:.811,dialogue:{time:85/60,src:"assets/momokage-dialogue-v32.mp3",duration:.416,text:"いくぞっ！"}},
     momonosuke:{key:"rush",element:"rush-video",start:0,end:241/60,title:800,frames:289,lunge:6,release:"rushRelease",voiceLead:.30,voice:"assets/momonosuke-super-v31.mp3",voiceDuration:.864,dialogue:{time:1.60,src:"assets/momonosuke-dialogue-v32.mp3",duration:.693,text:"いくよっ！"}},
-    yan:{key:"azure",element:"azure-video",start:0,end:4.7,title:0,frames:282,lunge:6,release:"azureRelease",soundtrack:"assets/yan-azure-soundtrack-v13.m4a",embeddedTitle:true,embeddedFlash:true,mirror:false}
+    yan:{key:"azure",element:"azure-video",start:0,end:4.7,title:0,frames:282,lunge:6,release:"azureRelease",soundtrack:"assets/yan-azure-soundtrack-v13.m4a",embeddedTitle:true,embeddedFlash:true,mirror:false},
+    'headman-nozaki':{key:'morph',form:'nozaki',element:'headman-nozaki-video',start:0,end:121/24,title:0,frames:303,release:'morphRelease',soundtrack:'assets/headman-nozaki-soundtrack-v1.m4a',embeddedTitle:true,embeddedFlash:true,skipReturnFlash:true,mirror:false},
+    'headman-thermae':{key:'morph',form:'thermae',element:'headman-thermae-video',start:0,end:138/24,title:0,frames:345,release:'morphRelease',soundtrack:'assets/headman-thermae-soundtrack-v1.m4a',embeddedTitle:true,embeddedFlash:true,skipReturnFlash:true,mirror:false}
   };
-  const movieFor=shot=>{const clip=cutins[shot?.a?.data?.id];return clip?.key===shot?.key?clip:null;};
+  const moviesFor=f=>f?.id==='headman'?[cutins['headman-thermae'],cutins['headman-nozaki']]:cutins[f?.id]?[cutins[f.id]]:[];
+  const movieFor=shot=>{const id=shot?.a?.data?.id,form=shot?.form||shot?.a?.shift?.pending||shot?.a?.shift?.form;const clip=cutins[id==='headman'?'headman-'+form:id];return clip?.key===shot?.key?clip:null;};
   const voiceSlots = { start: "試合開始", attack: "攻撃", special: "必殺技", damage: "被弾", win: "勝利" };
   const colors = {
     skin: ["#ffd2ae","#e9aa7b","#bd774e","#855140","#f2a7a6"],
@@ -118,7 +121,7 @@
   const keyLabels = { ArrowLeft:"←",ArrowRight:"→",ArrowUp:"↑",ArrowDown:"↓",
     KeyQ:"Q",KeyW:"W",KeyE:"E",KeyS:"S",KeyD:"D",KeyA:"A",KeyF:"F",KeyY:"Y",KeyH:"H",
     KeyJ:"J",KeyL:"L",KeyI:"I",KeyK:"K",KeyN:"N",KeyM:"M",KeyU:"U",KeyO:"O",KeyP:"P" };
-  const api = { clamp, stats, presets, moves, specials, cutins, movieFor, voiceSlots, colors, looks, bonus, normalize, cast, headmanForms, profile, controls, keyLabels };
+  const api = { clamp, stats, presets, moves, specials, cutins, moviesFor, movieFor, voiceSlots, colors, looks, bonus, normalize, cast, headmanForms, profile, controls, keyLabels };
   root.Dojo = api;
   if (typeof module === "object") module.exports = api;
 })(globalThis);

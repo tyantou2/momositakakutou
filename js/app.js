@@ -543,11 +543,12 @@
       const videoState=D.VideoCutIn.update(match.cinematic,paused,now);
       $("fight-arena").classList.toggle("video-cinematic",D.VideoCutIn.isVideo(match.cinematic));
       if(videoState==="done" && !paused) {
+        const skipReturnFlash=D.movieFor(match.cinematic)?.skipReturnFlash;
         returnTint=match.cinematic.key==="azure"?"#dfffff":"#fff0f7";
         D.VideoCutIn.stop();
         match.endCinematic(match.cinematic,true);
         consumeEvents(match.drain());
-        returnFlash=8;
+        returnFlash=skipReturnFlash?0:8;
         queue.fill(null);
       }
       if(!paused && match.phase!=="over") {
@@ -588,13 +589,13 @@
   }
   function consumeEvents(events) {
     for(const event of events) {
-      if(["crushRelease","rushRelease","azureRelease"].includes(event.type))D.Music.release(event);
+      if(["crushRelease","rushRelease","azureRelease","morphRelease"].includes(event.type))D.Music.release(event);
       if(event.type==="special" && mode!=="online")D.VideoCutIn.start(match.cinematic,settings.motion);
       const film=mode==="online"?!!D.movieFor(event) && settings.motion:D.VideoCutIn.holds(match.cinematic);
       D.Audio.event(event,film);
       if(["crushRelease","rushRelease","azureRelease"].includes(event.type) && mode==="online"){returnFlash=8;returnTint=event.key==="azure"?"#dfffff":"#fff0f7";}
       if(event.type==="over"){D.Music.stop(.65);onlineEnded=true;result();continue;}
-      if(!["fight","swing","step","jump","special","crushRelease","rushRelease","azureRelease","specialVoice","cutinDialogue"].includes(event.type))fx.push({...event,age:0});
+      if(!["fight","swing","step","jump","special","crushRelease","rushRelease","azureRelease","morphRelease","specialVoice","cutinDialogue"].includes(event.type))fx.push({...event,age:0});
       if(event.heavy)shake=event.type==="block"?3:7;
       if(event.rushFinish)shake=4;
     }

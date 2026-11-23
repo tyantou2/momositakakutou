@@ -135,7 +135,7 @@
       case "crushRelease": thump(.13,.12,1400);tone(145,360,.13,.11,"triangle");break;
       case "rushRelease": thump(.10,.10,1900);tone(280,650,.10,.10,"triangle");break;
       case "azureRelease": thump(.10,.11,2100);tone(420,1080,.12,.10,"triangle");break;
-      case 'transform': thump(.22,.12,e.form==='thermae'?700:1900);tone(e.form==='thermae'?240:520,e.form==='thermae'?520:230,.22,.09,'triangle');break;
+      case 'transform': if(e.prepared)break;thump(.22,.12,e.form==='thermae'?700:1900);tone(e.form==='thermae'?240:520,e.form==='thermae'?520:230,.22,.09,'triangle');break;
       case 'transformEnd': thump(.17,.06,1000);break;
       case 'wallBuild': thump(.25,.16,400);tone(90,45,.22,.10,'triangle');break;
       case 'wallHit': thump(.10,.11,1100);break;

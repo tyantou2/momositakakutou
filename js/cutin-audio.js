@@ -19,7 +19,7 @@
   function stop(){halt();epoch++;session=null;}
   function sync(event,time,running){
     const clip=D.movieFor(event);if(!ctx||!clip?.soundtrack){if(session)stop();return;}
-    const id=event.serial+':'+event.a.index+':'+event.key;
+    const id=event.serial+':'+event.a.index+':'+event.key+':'+clip.element;
     if(session?.id!==id){stop();session={id,src:clip.soundtrack,buffer:null,node:null,offset:0,started:0,played:0,running:false,starts:0,corrections:0,epoch};}
     const s=session;ensure(s.src);s.buffer=sounds.get(s.src)?.buffer;
     s.running=!!running;s.media=Math.max(0,time-clip.start);
@@ -38,7 +38,7 @@
     node.start(0,offset);
   }
   D.CutInSound={attach(context,output,loader){ctx=context;bus=output;load=loader;},
-    prepare(fighters){for(const f of fighters){const src=D.cutins[f.id]?.soundtrack;if(src){if(sounds.get(src)?.error)sounds.delete(src);ensure(src);}}},
+    prepare(fighters){for(const f of fighters)for(const clip of D.moviesFor(f)){const src=clip.soundtrack;if(src){if(sounds.get(src)?.error)sounds.delete(src);ensure(src);}}},
     ready:src=>!ctx||!!sounds.get(src)?.buffer||!!sounds.get(src)?.error,
     sync,hold,stop,status:()=>session?{id:session.id,src:session.src,running:session.running,playing:!!session.node,media:session.media,position:position(session),starts:session.starts,corrections:session.corrections,error:!!sounds.get(session.src)?.error}:{playing:false}};
 })(Dojo);

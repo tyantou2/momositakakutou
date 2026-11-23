@@ -12,11 +12,11 @@
   let seekTarget=null,needsSeek=false,lastSeek=-Infinity,wait=0,totalWait=0,retries=0,reloads=0,stallRetries=0,lastAttempt=-Infinity;
   let dialogueSent=false,cueSent=false,onlineAge=-1,ageIdle=0,reported=false,soundWait=0;
   const active=()=>!!shot&&!['idle','done','fallback'].includes(state);
-  const same=s=>!!shot&&!!s&&s.serial===shot.serial&&s.key===shot.key&&s.a.index===shot.a.index&&s.a.data.id===shot.a.data.id;
+  const same=s=>!!shot&&!!s&&s.serial===shot.serial&&s.key===shot.key&&s.a.index===shot.a.index&&s.a.data.id===shot.a.data.id&&D.movieFor(s)?.element===clip?.element;
   function attributes(v){v.muted=true;v.defaultMuted=true;v.playsInline=true;v.setAttribute?.('muted','');v.setAttribute?.('playsinline','');v.setAttribute?.('webkit-playsinline','');v.disablePictureInPicture=true;}
   function pause(){request++;pending=false;playResolved=false;video?.pause();D.CutInSound?.hold();}
   function cancelFrames(){if(frameCallback!==null)video?.cancelVideoFrameCallback?.(frameCallback);frameCallback=null;}
-  function report(outcome){if(!shot||reported)return;reported=true;history.push({character:shot.a.data.id,key:shot.key,serial:shot.serial,outcome,reason,frames,maxTime,retries,reloads,position:video?.currentTime,requestedSeek:seekTarget,seeking:video?.seeking,readyState:video?.readyState});if(history.length>30)history.shift();}
+  function report(outcome){if(!shot||reported)return;reported=true;history.push({character:shot.a.data.id,key:shot.key,form:shot.form,element:clip.element,serial:shot.serial,outcome,reason,frames,maxTime,retries,reloads,position:video?.currentTime,requestedSeek:seekTarget,seeking:video?.seeking,readyState:video?.readyState});if(history.length>30)history.shift();}
   function stop(){if(active())report(onlineAge>=0&&onlineAge>=clip.frames-8&&hasFrame&&maxTime>=clip.end-.20?'completed':'interrupted');cancelFrames();pause();D.CutInSound?.stop();epoch++;shot=clip=video=null;state='idle';clock=null;hasFrame=seenFrame=false;}
   function fail(why){if(!active())return;reason=why;state='fallback';cancelFrames();pause();D.CutInSound?.stop();report('fallback');}
   function progress(){wait=0;}
@@ -156,7 +156,7 @@
   }
   function prepare(fighters,gesture=false){
     D.CutInSound?.prepare(fighters);
-    const needed=new Set(fighters.map(f=>D.cutins[f.id]?.element).filter(Boolean));
+    const needed=new Set(fighters.flatMap(f=>D.moviesFor(f)).map(c=>c.element));
     for(const [id,element]of Object.entries(elements)){
       if(!element||!needed.has(id))continue;
       const record=records.get(element);attributes(element);element.preload='auto';
