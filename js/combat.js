@@ -7,7 +7,7 @@
     exhaustion:90, jump:665, gravity:1440, superLimit:2, cutIn:66, openingCharge:24,
     chargePerSecond:.40, hitCharge:3.2, receivedCharge:2, guardCharge:2.6, evadeCharge:4.5,
     perfectWindow:3, perfectCooldown:120, punishWindow:40, perfectRecovery:5, perfectStop:5,
-    landingRecovery:12, guardDrain:4
+    landingRecovery:12, guardDrain:4, jumpCrossHeight:64
   };
   const passive = () => ({ axis:0, guard:false });
   const gap = (a,b) => Math.abs(a.x-b.x);
@@ -83,10 +83,11 @@
       }
       this.frame++;
       D.Headman.beforeFrame(this);
+      const aWasLeft=a.x<b.x || a.x===b.x&&a.face>0;
       this.seconds=Math.max(0,LIMIT.round-this.frame*LIMIT.dt);
       const second=this.mode==="local"?p2:this.cpu(b,a);
       const openings=[this.update(a,this.defenseCommand(a,p1)),this.update(b,this.defenseCommand(b,second))].filter(Boolean);
-      this.separate();
+      this.separate(aWasLeft);
       D.Headman.constrain(this);
       const hits=[this.strike(a,b),this.strike(b,a)].filter(Boolean);
       // A landed multi-hit special takes priority over a simultaneous counterhit.
@@ -291,18 +292,23 @@
       this.emit("swing",f,null,{key});
       return null;
     }
-    separate() {
+    separate(aWasLeft) {
       const [a,b]=this.fighters;
       D.Headman.constrain(this);
-      const spacing=.98*(a.p.hurt+b.p.hurt)+12;
+      // The pushbox narrows continuously with vertical separation. Full air
+      // crossing starts at 64px; descent restores spacing without a landing snap.
+      const flank=D.Headman.crossing(this);
+      const clearance=D.clamp(1-Math.abs(a.lift-b.lift)/RULES.jumpCrossHeight,0,1);
+      const spacing=flank?0:(.98*(a.p.hurt+b.p.hurt)+12)*clearance;
       const center=D.clamp((a.x+b.x)/2,LIMIT.left+spacing/2,LIMIT.right-spacing/2);
-      const [left,right]=a.x<=b.x?[a,b]:[b,a];
-      if (right.x-left.x<spacing && !D.Headman.crossing(this)) {
+      const leftIsA=spacing===0?a.x<=b.x:(aWasLeft??a.x<=b.x);
+      const [left,right]=leftIsA?[a,b]:[b,a];
+      if (right.x-left.x<spacing) {
         left.x=center-spacing/2;
         right.x=center+spacing/2;
       } else {
-        left.x=D.clamp(left.x,LIMIT.left,LIMIT.right-(D.Headman.crossing(this)?0:spacing));
-        right.x=D.clamp(right.x,LIMIT.left+(D.Headman.crossing(this)?0:spacing),LIMIT.right);
+        left.x=D.clamp(left.x,LIMIT.left,LIMIT.right-spacing);
+        right.x=D.clamp(right.x,LIMIT.left+spacing,LIMIT.right);
       }
       if(a.x!==b.x){a.face=a.x<b.x?1:-1;b.face=-a.face;}
     }

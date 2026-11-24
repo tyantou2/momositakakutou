@@ -1,6 +1,6 @@
 (function(D) {
   "use strict";
-  const VERSION="dojo-3.6",PREFIX="momoshita-v36-";
+  const VERSION="dojo-3.7",PREFIX="momoshita-v37-";
   const alphabet="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   const token=()=>Array.from(crypto.getRandomValues(new Uint8Array(8)),n=>alphabet[n%alphabet.length]).join("");
   function fighter(record) {
