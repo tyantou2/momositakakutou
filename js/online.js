@@ -1,6 +1,7 @@
 (function(D) {
   "use strict";
-  const VERSION="dojo-3.7",PREFIX="momoshita-v37-";
+  // Connection fixes do not change combat compatibility or invalidate v3.7 rooms.
+  const VERSION="dojo-3.7",PREFIX="momoshita-v38-";
   const alphabet="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   const token=()=>Array.from(crypto.getRandomValues(new Uint8Array(8)),n=>alphabet[n%alphabet.length]).join("");
   function fighter(record) {
@@ -21,14 +22,22 @@
     }
     async open(joinCode) {
       this.close();this.disposed=false;
-      if(!globalThis.Peer || !globalThis.RTCPeerConnection){this.fail("このブラウザではオンライン対戦を開始できません。最新版のChromeまたはEdgeをお試しください。");return;}
+      const generation=this.generation;
+      if(!globalThis.VdoPeer || !globalThis.VDONinjaSDK || !globalThis.RTCPeerConnection){this.fail("このブラウザではオンライン対戦を開始できません。最新版のChromeまたはEdgeをお試しください。");return;}
       this.side=joinCode?1:0;this.code=joinCode||token();
+      this.change("connecting","接続経路を準備中…");
+      let settings;
+      try{settings=await D.ConnectionConfig.load();}
+      catch(error){if(this.generation===generation)this.fail(error.message);return;}
+      if(this.generation!==generation||this.disposed)return;
+      this.relayConfigured=settings.relay;this.signalRetries=0;this.joinCode=joinCode;
       this.change("connecting",joinCode?"部屋に接続中…":"招待コードを発行中…");
-      const peer=this.peer=new Peer(joinCode?undefined:PREFIX+this.code,{debug:0});
+      const peer=this.peer=new VdoPeer(joinCode?undefined:PREFIX+this.code);
       const timeout=this.openTimer=setTimeout(()=>{if(this.peer===peer && this.status==="connecting")this.fail("接続に時間がかかっています。コードと回線を確認して接続し直してください。");},15000);
       peer.on("open",()=>{
         if(this.peer!==peer)return;
-        clearTimeout(timeout);
+        clearTimeout(timeout);clearTimeout(this.reconnectTimer);clearTimeout(this.reconnectDeadline);this.signalRetries=0;
+        if(this.conn)return;
         if(joinCode)this.attach(peer.connect(PREFIX+joinCode,{serialization:"json",reliable:true,metadata:{v:VERSION}}));
         else this.change("waiting","コードを相手に共有してください。");
       });
@@ -38,14 +47,37 @@
       });
       peer.on("error",e=>{
         if(this.peer!==peer || this.disposed)return;
-        const message=e.type==="peer-unavailable"?"部屋が見つかりません。招待コードと、相手が待機中かを確認してください。":e.type==="unavailable-id"?"コードを発行できませんでした。もう一度部屋を作ってください。":"接続できませんでした。回線を確認してもう一度お試しください。";
+        if(e.type==="network"&&this.conn?.open)return; // Established P2P does not need signaling.
+        if(e.type==="network"&&peer.disconnected&&!peer.destroyed){this.recoverSignal(peer);return;}
+        const message=e.type==="peer-unavailable"?"部屋が見つかりません。双方でページを更新し、待機中の相手から新しいコードを受け取ってください。":e.type==="unavailable-id"?"コードを発行できませんでした。もう一度部屋を作ってください。":"接続サービスに接続できませんでした。回線を確認してもう一度お試しください。";
         this.fail(message);
       });
-      peer.on("disconnected",()=>{if(this.peer===peer && !this.conn?.open && !this.disposed)this.fail("接続サービスとの通信が切れました。もう一度お試しください。");});
+      peer.on("disconnected",()=>{if(this.peer===peer&&!this.conn?.open&&!this.disposed)this.recoverSignal(peer);});
+    }
+    recoverSignal(peer) {
+      if(this.peer!==peer||this.disposed||this.conn?.open||this.reconnectTimer)return;
+      clearTimeout(this.openTimer);
+      if(peer.destroyed||this.signalRetries>=3){this.fail("接続サービスとの通信が復旧しませんでした。もう一度部屋を作ってください。");return;}
+      this.message="接続サービスへ再接続中… 招待コードはそのまま使えます。";this.callbacks.status?.(this);
+      this.reconnectTimer=setTimeout(()=>{
+        this.reconnectTimer=null;
+        if(this.peer!==peer||this.disposed||this.conn?.open)return;
+        this.signalRetries++;
+        try{peer.reconnect();}catch{this.recoverSignal(peer);return;}
+        this.reconnectDeadline=setTimeout(()=>{if(this.peer===peer&&!peer.open)this.recoverSignal(peer);},5000);
+      },1000);
+    }
+    pendingFailed(c) {
+      if(this.conn!==c||this.disposed)return;
+      if(this.status==="connected"||this.status==="battle"){this.fail("相手が退出したか、接続が切れました。");return;}
+      clearTimeout(this.connectTimer);this.conn=null;c.close();
+      if(this.side===0)this.change("waiting","相手の接続を完了できませんでした。同じコードで参加し直せます。");
+      else this.fail("相手との接続を完了できませんでした。双方でページを更新してから参加し直してください。");
     }
     attach(c) {
       this.conn=c;
-      const timeout=this.connectTimer=setTimeout(()=>{if(!c.open && this.conn===c)this.fail("相手に接続できません。別の回線でお試しください。");},15000);
+      if(this.side===0)this.change("connecting","相手との通信経路を確認中…");
+      const timeout=this.connectTimer=setTimeout(()=>{if(!c.open&&this.conn===c)this.pendingFailed(c);},30000);
       c.on("open",()=>{
         if(this.conn!==c)return;
         clearTimeout(timeout);this.lastSeen=performance.now();
@@ -58,8 +90,8 @@
         },1000);
       });
       c.on("data",data=>{if(this.conn===c)this.receive(data);});
-      c.on("close",()=>{if(this.conn===c && !this.disposed)this.fail("相手が退出したか、接続が切れました。");});
-      c.on("error",()=>{if(this.conn===c && !this.disposed)this.fail("通信が切れました。接続し直してください。");});
+      c.on("close",()=>this.pendingFailed(c));
+      c.on("error",()=>this.pendingFailed(c));
     }
     setFighter(record) {
       if(!record)return;
@@ -116,7 +148,8 @@
       this.close();this.change("error",message);this.callbacks.error?.(message,wasBattle);
     }
     close() {
-      this.disposed=true;clearInterval(this.timer);clearTimeout(this.openTimer);clearTimeout(this.connectTimer);
+      this.generation=(this.generation||0)+1;
+      this.disposed=true;clearInterval(this.timer);clearTimeout(this.openTimer);clearTimeout(this.connectTimer);clearTimeout(this.reconnectTimer);clearTimeout(this.reconnectDeadline);this.reconnectTimer=null;
       const conn=this.conn,peer=this.peer;this.conn=null;this.peer=null;
       conn?.close();peer?.destroy();
       this.core=null;this.round=null;this.localReady=false;this.remoteReady=false;this.remoteFighter=null;this.code="";this.stallSince=0;
@@ -126,4 +159,5 @@
   }
   D.Online=Online;D.onlineFighter=fighter;
 })(Dojo);
+
 
