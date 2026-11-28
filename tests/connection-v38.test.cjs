@@ -6,7 +6,7 @@ const relay={config:{iceServers:[{urls:'turns:relay.example.com:443?transport=tc
 function clock(){let id=0;const timers=new Map();return {timers,setTimeout(fn,delay){const n=++id;timers.set(n,{fn,delay});return n;},clearTimeout(n){timers.delete(n);},run(delay){const entry=[...timers].find(([,v])=>v.delay===delay);assert.ok(entry,'timer '+delay);timers.delete(entry[0]);entry[1].fn();}};}
 function harness(load=async()=>structuredClone(relay)){
  const c=clock(),peers=[],errors=[],states=[];
- class Conn extends EventEmitter{constructor(){super();this.open=false;this.metadata={v:'dojo-3.7'};this.sent=[];}send(m){this.sent.push(m);}close(){this.closed=true;this.open=false;this.emit('close');}start(){this.open=true;this.emit('open');}}
+ class Conn extends EventEmitter{constructor(){super();this.open=false;this.metadata={v:'dojo-3.9'};this.sent=[];}send(m){this.sent.push(m);}close(){this.closed=true;this.open=false;this.emit('close');}start(){this.open=true;this.emit('open');}}
  class Peer extends EventEmitter{constructor(id,options){super();this.id=id;this.options=options;this.connections=[];peers.push(this);}connect(id,options){const conn=new Conn();conn.target=id;conn.options=options;this.connections.push(conn);return conn;}reconnect(){this.reconnects=(this.reconnects||0)+1;}destroy(){this.destroyed=true;}start(){this.open=true;this.disconnected=false;this.emit('open');}}
  const dojo={...D,ConnectionConfig:{load}};
  vm.runInNewContext(onlineSource,{Dojo:dojo,VdoPeer:Peer,VDONinjaSDK:class{},RTCPeerConnection:class{},crypto:require('node:crypto').webcrypto,performance:{now:()=>100},setTimeout:c.setTimeout,clearTimeout:c.clearTimeout,setInterval:c.setTimeout,clearInterval:c.clearTimeout});
@@ -16,7 +16,7 @@ function harness(load=async()=>structuredClone(relay)){
 test('both room owners and guests prepare connection settings before constructing Peer',async()=>{
  for(const code of [undefined,'ABCD2345']){
   const h=harness();await h.net.open(code);const p=h.peers[0];assert.equal(h.net.relayConfigured,true);p.start();
-  if(code){assert.equal(p.connections[0].target,'momoshita-v38-'+code);assert.equal(p.connections[0].options.metadata.v,'dojo-3.7');}
+  if(code){assert.equal(p.connections[0].target,'momoshita-v39-'+code);assert.equal(p.connections[0].options.metadata.v,'dojo-3.9');}
   else assert.equal(h.net.status,'waiting');h.net.close();assert.equal(h.c.timers.size,0);
  }
 });

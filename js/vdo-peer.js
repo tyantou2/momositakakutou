@@ -6,7 +6,7 @@
     emit(name,...args){for(const fn of this.handlers[name]||[])fn(...args);}
   }
   class Channel extends Events {
-    constructor(peer){super();this.peer=peer;this.open=false;this.metadata={v:'dojo-3.7'};this.uuid=null;}
+    constructor(peer){super();this.peer=peer;this.open=false;this.metadata={v:'dojo-3.9'};this.uuid=null;}
     send(data){if(!this.open||!this.peer.sdk.sendData({momoshita:data},this.uuid))throw Error('data channel unavailable');}
     close(){if(this.closed)return;this.closed=true;this.open=false;if(this.peer.channel===this)this.peer.channel=null;this.emit('close');}
   }
@@ -17,7 +17,7 @@
     }
     connect(id){const c=this.channel=new Channel(this);this.start(id);return c;}
     async start(id){
-      const sdk=this.sdk=new root.VDONinjaSDK({password:id,salt:'momoshita-v38'});
+      const sdk=this.sdk=new root.VDONinjaSDK({password:id,salt:'momoshita-v39'});
       sdk.addEventListener('dataChannelOpen',e=>{
         if(this.destroyed)return;
         let c=this.channel;

@@ -1,7 +1,7 @@
 (function(D) {
   "use strict";
   // Connection fixes do not change combat compatibility or invalidate v3.7 rooms.
-  const VERSION="dojo-3.7",PREFIX="momoshita-v38-";
+  const VERSION="dojo-3.9",PREFIX="momoshita-v39-";
   const alphabet="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   const token=()=>Array.from(crypto.getRandomValues(new Uint8Array(8)),n=>alphabet[n%alphabet.length]).join("");
   function fighter(record) {

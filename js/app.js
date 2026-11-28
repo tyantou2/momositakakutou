@@ -14,7 +14,7 @@
   const icon = key => '<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">'+icons[key]+"</svg>";
   const modes = { cpu:"CPU対戦",local:"ローカル対戦",practice:"練習",online:"オンライン対戦" };
   const actionNames = { left:"左",right:"右",jump:"ジャンプ",guard:"ガード",light:"弱",heavy:"強",back:"後ろ回避",spot:"その場回避",special:"必殺",skillA:"専用技1",skillB:"専用技2" };
-  const looks = { hair:"髪型",eyes:"表情",outfit:"服", skin:"肌の色", hairColor:"髪の色", cloth:"服の色",glove:"グローブの色" };
+  const looks = { face:"輪郭",hair:"髪型",hairColor:"髪の色",skin:"肌の色",eyes:"目の形",eyeSize:"目の大きさ",eyeSpacing:"目の間隔",brows:"眉毛",nose:"鼻",mouth:"口",glasses:"眼鏡",facialHair:"ひげ",mark:"顔の特徴",outfit:"服",cloth:"服の色",glove:"グローブの色" };
   const colorNames = {skin:["ピーチ","サンド","ブロンズ","ブラウン","ローズ"],hairColor:["墨色","紫檀","栗色","金色","青緑","銀色"],cloth:["紅","藍","緑","紫","琥珀","炭色"],glove:["桃","水色","橙","若草","藤","生成り"]};
   const storageKey = "toukasonjuku.boxing.v1";
   const optionKey = "toukasonjuku.boxing.options.v1";
@@ -691,5 +691,6 @@
   paintLobby();
   requestAnimationFrame(frame);
 })(Dojo);
+
 
 

@@ -48,7 +48,7 @@
     cloth: ["#ad3965","#3e539f","#357c70","#714eab","#c37a37","#474354"],
     glove: ["#ed567c","#6baeea","#da9744","#63b891","#b787e8","#f0d8bc"]
   };
-  const looks = { hair: ["流し髪","ショート","ツイン","ポニーテール"], outfit: ["道着","ジャケット","ノースリーブ"], eyes: ["凛々しい","穏やか","快活"] };
+  const looks = { hair: ["流し髪","ショート","ツイン","ポニーテール","丸刈り","ロング","お団子","とがり髪"], outfit: ["道着","ジャケット","ノースリーブ","パーカー","スポーツ"], eyes: ["凛々しい","穏やか","快活","たれ目","つり目","細目"], face:["標準","丸顔","面長"], brows:["標準","太い","細い","上がり","下がり"], nose:["標準","小さい","丸い"], mouth:["標準","笑顔","きりっと","にっこり"], glasses:["なし","四角","丸","サングラス"], facialHair:["なし","口ひげ","あごひげ"], mark:["なし","ほくろ","そばかす","傷"], eyeSize:["小","標準","大"], eyeSpacing:["狭い","標準","広い"] };
   function bonus(input) {
     let remaining = 10;
     const result = {};
@@ -71,7 +71,7 @@
     const height = oldHeight ? bounded(record.height, 3, 1, 5) + 3 : bounded(record.height, 6, 1, 10);
     const look = {};
     for (const [key, choices] of Object.entries({ ...looks, ...colors })) {
-      look[key] = bounded(record.look?.[key], 0, 0, choices.length - 1);
+      look[key] = bounded(record.look?.[key], key === "eyeSize" || key === "eyeSpacing" ? 1 : 0, 0, choices.length - 1);
     }
     return {
       id: typeof record.id === "string" ? record.id.slice(0,70) : "",
@@ -125,5 +125,6 @@
   root.Dojo = api;
   if (typeof module === "object") module.exports = api;
 })(globalThis);
+
 
 
